@@ -11,6 +11,7 @@ import 'package:hiddify/core/router/go_router/refresh_listenable.dart';
 import 'package:hiddify/features/about/widget/about_page.dart';
 import 'package:hiddify/features/home/widget/home_page.dart';
 import 'package:hiddify/features/intro/widget/intro_page.dart';
+import 'package:hiddify/features/invite/widget/invite_page.dart';
 import 'package:hiddify/features/log/overview/logs_page.dart';
 import 'package:hiddify/features/per_app_proxy/overview/per_app_proxy_page.dart';
 import 'package:hiddify/features/profile/details/profile_details_page.dart';
@@ -105,6 +106,11 @@ class RoutingConfigNotifier extends _$RoutingConfigNotifier {
           final uri = Uri.parse(url);
           final path = uri.path + (uri.hasQuery ? "?${uri.query}" : "");
           return path;
+        } else if (ref.watch(hasAnyProfileProvider).value == false && state.matchedLocation != '/invite') {
+          // Профілю ще немає — показувати нема чого, ведемо на введення коду.
+          // Порівняння саме з false: поки стрім вантажиться, value == null,
+          // і смикати редірект на кожен старт застосунку не варто.
+          return '/invite';
         } else if (state.matchedLocation.contains('chain-options') &&
             (ref.watch(hasAnyProfileProvider).value == false)) {
           // Prevent showing chainOptions while hasAnyProfile == false
@@ -309,6 +315,7 @@ class RoutingConfigNotifier extends _$RoutingConfigNotifier {
           ],
         ),
         GoRoute(name: 'intro', path: '/intro', builder: (_, _) => const IntroPage()),
+        GoRoute(name: 'invite', path: '/invite', builder: (_, _) => const InvitePage()),
       ],
     );
   }

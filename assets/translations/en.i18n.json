@@ -97,6 +97,18 @@
     "termsAndPolicyCaution(rich)": "By continuing you agree to ${tap(@:pages.about.termsAndConditions)}",
     "info(rich)": "Made with ❤️ by Hiddify - ${tap_source(Open Source)} (${tap_license(License)})"
   },
+  "invite": {
+    "title": "Enter your invite code",
+    "subtitle": "Ask whoever shared this app with you for a code.",
+    "hint": "ABCD-EFGH",
+    "submit": "Continue",
+    "errors": {
+      "notFound": "Code not found. Check for typos.",
+      "used": "This code has already been used.",
+      "tooMany": "Too many attempts. Wait a minute and try again.",
+      "network": "Cannot reach the server. Check your connection."
+    }
+  },
   "pages": {
     "home": {
       "title": "Home",
