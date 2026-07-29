@@ -71,7 +71,9 @@ android {
     }
 
     defaultConfig {
-        applicationId "app.hiddify.com"
+        // namespace вище лишається апстрімовим: це Kotlin-пакет, і його зміна
+        // потягла б перенесення всіх .kt та .aidl, ламаючи merge з upstream.
+        applicationId "dev.anatolii.lampa"
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()

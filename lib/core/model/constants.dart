@@ -3,15 +3,28 @@ import 'package:flutter/services.dart';
 import 'package:hiddify/utils/utils.dart';
 
 abstract class Constants {
-  static const appName = "Hiddify";
-  static const githubUrl = "https://github.com/hiddify/hiddify-next";
-  static const licenseUrl = "https://github.com/hiddify/hiddify-next?tab=License-1-ov-file#readme";
-  static const githubReleasesApiUrl = "https://api.github.com/repos/hiddify/hiddify-next/releases";
-  static const githubLatestReleaseUrl = "https://github.com/hiddify/hiddify-app/releases/latest";
-  static const appCastUrl = "https://raw.githubusercontent.com/hiddify/hiddify-next/main/appcast.xml";
-  static const telegramChannelUrl = "https://t.me/hiddify";
-  static const privacyPolicyUrl = "https://hiddify.com/privacy-policy/";
-  static const termsAndConditionsUrl = "https://hiddify.com/terms/";
+  static const appName = "Лампа";
+
+  /// Адреса вашого сервера — звідси додаток гасить код-запрошення й тягне
+  /// профіль. Значення за замовчуванням треба замінити на реальний домен
+  /// перед першим релізом, або передати при збірці:
+  ///   flutter build apk --dart-define=LAMPA_API_BASE=https://vpn.example.com
+  static const apiBase = String.fromEnvironment(
+    'LAMPA_API_BASE',
+    defaultValue: 'https://vpn.example.com',
+  );
+
+  static const repoUrl = "https://github.com/AnatoliiDev/vpn-tool-app";
+
+  static const githubUrl = repoUrl;
+  static const licenseUrl = "$repoUrl?tab=License-1-ov-file#readme";
+  static const githubReleasesApiUrl = "https://api.github.com/repos/AnatoliiDev/vpn-tool-app/releases";
+  static const githubLatestReleaseUrl = "$repoUrl/releases/latest";
+  static const appCastUrl = "https://raw.githubusercontent.com/AnatoliiDev/vpn-tool-app/main/appcast.xml";
+  static const telegramChannelUrl = repoUrl;
+  // Власних сторінок політик поки немає — умови описані в ліцензії форку.
+  static const privacyPolicyUrl = "$repoUrl#readme";
+  static const termsAndConditionsUrl = licenseUrl;
   static const cfWarpPrivacyPolicy = "https://www.cloudflare.com/application/privacypolicy/";
   static const cfWarpTermsOfService = "https://www.cloudflare.com/application/terms/";
 }
