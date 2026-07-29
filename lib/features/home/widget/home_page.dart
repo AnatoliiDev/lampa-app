@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:hiddify/core/app_info/app_info_provider.dart';
 import 'package:hiddify/core/localization/translations.dart';
-import 'package:hiddify/core/router/bottom_sheets/bottom_sheets_notifier.dart';
 import 'package:hiddify/features/home/widget/connection_button.dart';
-import 'package:hiddify/features/profile/notifier/active_profile_notifier.dart';
-import 'package:hiddify/features/profile/widget/profile_tile.dart';
 import 'package:hiddify/features/proxy/active/active_proxy_card.dart';
 import 'package:hiddify/features/proxy/active/active_proxy_delay_indicator.dart';
 import 'package:hiddify/gen/assets.gen.dart';
@@ -20,9 +17,6 @@ class HomePage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final t = ref.watch(translationsProvider).requireValue;
-    // final hasAnyProfile = ref.watch(hasAnyProfileProvider);
-    final activeProfile = ref.watch(activeProfileProvider);
-
     return Scaffold(
       appBar: AppBar(
         // leading: (RootScaffold.stateKey.currentState?.hasDrawer ?? false) && showDrawerButton(context)
@@ -47,29 +41,8 @@ class HomePage extends HookConsumerWidget {
             ),
           ],
         ),
-        actions: [
-          // IconButton(
-          //     onPressed: () => const QuickSettingsRoute().push(context),
-          //     icon: const Icon(FluentIcons.options_24_filled),
-          //     material: (context, platform) => MaterialIconButtonData(
-          //           tooltip: t.config.quickSettings,
-          //         )),
-          // IconButton(
-          //     onPressed: () => const AddProfileRoute().push(context),
-          //     icon: const Icon(FluentIcons.add_circle_24_filled),
-          //     material: (context, platform) => MaterialIconButtonData(
-          //           tooltip: t.profile.add.buttonText,
-          //         )),
-          Semantics(
-            key: const ValueKey("profile_add_button"),
-            label: t.pages.profiles.add,
-            child: IconButton(
-              icon: Icon(Icons.add_rounded, color: theme.colorScheme.primary),
-              onPressed: () => ref.read(bottomSheetsNotifierProvider.notifier).showAddProfile(),
-            ),
-          ),
-          const Gap(8),
-        ],
+        // actions немає навмисно: доступ видається кодом запрошення, тож
+        // кнопка додавання профілю лише плутала б користувача.
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -97,19 +70,12 @@ class HomePage extends HookConsumerWidget {
                   slivers: [
                     // switch (activeProfile) {
                     // AsyncData(value: final profile?) =>
+                    // Плитки профілю тут теж немає: користувач має один профіль,
+                    // який приходить сам, і назва з лічильником трафіку йому ні
+                    // про що не говорять.
                     MultiSliver(
-                      children: [
-                        // const Gap(100),
-                        switch (activeProfile) {
-                          AsyncData(value: final profile?) => ProfileTile(
-                            profile: profile,
-                            isMain: true,
-                            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            color: Theme.of(context).colorScheme.surfaceContainer,
-                          ),
-                          _ => const Text(""),
-                        },
-                        const SliverFillRemaining(
+                      children: const [
+                        SliverFillRemaining(
                           hasScrollBody: false,
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -139,43 +105,9 @@ class HomePage extends HookConsumerWidget {
                 ),
               ),
             ),
-            if (ref.watch(hasAnyProfileProvider).value ?? false)
-              Positioned(
-                right: 0,
-                left: 0,
-                bottom: 0,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Material(
-                      color: theme.colorScheme.primaryContainer,
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(16),
-                        topRight: Radius.circular(16),
-                      ),
-                      child: InkWell(
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(16),
-                          topRight: Radius.circular(16),
-                        ),
-                        onTap: () => ref.read(bottomSheetsNotifierProvider.notifier).showQuickSettings(),
-                        child: Container(
-                          height: 32,
-                          padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(t.pages.home.quickSettings),
-                              const Gap(4),
-                              const Icon(Icons.arrow_drop_up_rounded, size: 16),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            // Панель Quick settings прибрана: вона відкривала вибір ядра й
+            // правила роутингу — рівно те, у чому користувачу нема потреби
+            // розбиратися. Налаштування лишаються доступними через «Додатково».
           ],
         ),
       ),
