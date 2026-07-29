@@ -111,9 +111,15 @@ android {
                 signingConfig signingConfigs.debug
             }
             ndk {
+                // x86_64 прибрано: це архітектура емуляторів, серед реальних
+                // телефонів її практично немає, а нативні бібліотеки ядра
+                // важать десятки мегабайт на кожну ABI.
                 //noinspection ChromeOsAbiSupport
-                abiFilters "x86_64", "armeabi-v7a", "arm64-v8a"
-                debugSymbolLevel 'FULL'
+                abiFilters "armeabi-v7a", "arm64-v8a"
+                // Символи потрібні для читабельних крешів у Play Console, куди
+                // ми не публікуємось. У релізі v0.0.1 вони дали APK на 341 МБ —
+                // непідйомно для роздачі кнопкою з сайту.
+                debugSymbolLevel 'NONE'
             }
         }
     }
