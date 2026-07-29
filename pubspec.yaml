@@ -1,7 +1,7 @@
 name: hiddify
 description: Cross Platform Multi Protocol Proxy Frontend.
 publish_to: "none"
-version: 0.0.1+1
+version: 0.0.2+2
 
 environment:
   sdk: ^3.10.4
@@ -189,9 +189,12 @@ ffigen:
     entry-points:
       - "hiddify-core/bin/desktop.h"
 
+# Крок «Upload Debug Symbols» у build.yml завантажував символи в Sentry-проєкт
+# Hiddify. Ми до нього доступу не маємо, тому sentry-cli отримував 404 і валив
+# job уже ПІСЛЯ того, як APK успішно зібрався й підписався.
 sentry:
-  upload_debug_symbols: true
-  upload_source_maps: true
-  upload_sources: true
+  upload_debug_symbols: false
+  upload_source_maps: false
+  upload_sources: false
   log_level: info
   ignore_missing: true
