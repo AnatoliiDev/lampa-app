@@ -23,8 +23,8 @@ env:
   TARGET_NAME_AppImage: "Hiddify-Linux-x64-AppImage"
   TARGET_NAME_deb: "Hiddify-Debian-x64"
   # TARGET_NAME_rpm: "Hiddify-rpm-x64"
-  TARGET_NAME_apk: "Hiddify-Android"
-  TARGET_NAME_aab: "Hiddify-Android"
+  TARGET_NAME_apk: "Lampa-Android"
+  TARGET_NAME_aab: "Lampa-Android"
   TARGET_NAME_exe: "Hiddify-Windows-Setup-x64"
   TARGET_NAME_msix: "Hiddify-Windows-x64"
   TARGET_NAME_zip: "Hiddify-Windows-Portable-x64"
@@ -65,23 +65,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Збираємо тільки Android APK. Решта прибрана свідомо:
+          #   android-aab — потрібен лише для Google Play, а ми роздаємо APK з сайту;
+          #   windows / linux / macos — не наш сценарій, секретів для підпису немає,
+          #   тож ці job'и лише падали на кожному релізі.
+          # iOS повернемо, коли з'явиться Apple Developer.
           - platform: android-apk
             os: ubuntu-latest
             targets: apk
-
-          - platform: android-aab
-            os: ubuntu-latest
-            targets: aab
-
-          - platform: windows
-            os: windows-latest
-            aarch: amd64
-            targets: exe,msix,zip
-
-          - platform: linux
-            os: ubuntu-22.04
-            aarch: amd64
-            targets: deb,gz,AppImage
 
           # - platform: linux-amd64
           #   os: ubuntu-22.04
@@ -103,11 +94,11 @@ jobs:
           #   aarch: arm64
           #   targets: deb,gz
             
-          - platform: macos
-            os: macos-15
-            aarch: universal
-            targets: dmg,pkg
-            
+          # - platform: macos
+          #   os: macos-15
+          #   aarch: universal
+          #   targets: dmg,pkg
+
           # - platform: ios
           #   os: macos-15
           #   aarch: universal
@@ -352,72 +343,6 @@ jobs:
         run: |
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db ||echo ok
           rm ~/Library/MobileDevice/Provisioning\ Profiles/*.mobileprovision ||echo ok
-  update-draft:
-    permissions: write-all
-    if: ${{ inputs.upload-artifact }}
-    needs: [build]
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v6
-        with:
-          # by default, it uses a depth of 1
-          # this fetches all history so that we can read each commit
-          fetch-depth: 0
-      - name: Download Artifact
-        uses: actions/download-artifact@v7
-        with:
-          merge-multiple: true
-          pattern: "*"
-          path: ./out/
-          
-
-      - name: Display Files Structure
-        run: ls -R
-        working-directory: ./out
-
-      - name: Delete Current Release Assets
-        uses: 8Mi-Tech/delete-release-assets-action@main
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: 'draft'
-          deleteOnlyFromDrafts: false
-          
-      - name: prepare_release_message
-        continue-on-error: true
-        run: |
-          set +e 
-          sed 's|RELEASE_TAG|${{ env.TAG_NAME }}|g' ./.github/release_message.md > release.md
-          pip install gitchangelog pystache mustache markdown
-          prelease=$(curl --silent "https://api.github.com/repos/hiddify/hiddify-app/releases/latest" | grep -Po '"tag_name": "\K([^"]*)') 
-          echo -e "\n\n<details markdown=1><summary>All changes from $current to the latest commit:</summary>\n\n">>release.md
-          gitchangelog "${prelease}.." >> release.md  2>&1 || echo "Error in gitchangelog"
-          echo -e "\n\n</details>">>release.md
-      - name: Create or Update Draft Release
-        uses: softprops/action-gh-release@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          files: ./out/*
-          name: 'draft'
-          tag_name: 'draft'
-          body_path: './release.md'
-          prerelease: true
-
-      - name: Create or Update Draft Release
-        uses: softprops/action-gh-release@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN_FOR_HIDDIFY_APP_REPO }}
-          GITHUB_REPOSITORY: hiddify/hiddify-app
-        with:
-          files: ./out/*
-          name: 'draft'
-          tag_name: 'draft'
-          body_path: './release.md'
-          target_commitish: '530bf77839a74d4f13847ba244a20734ac7ab119'
-          prerelease: true
-          repository: hiddify/hiddify-app
-
   upload-release:
     permissions: write-all
     if: ${{ inputs.upload-artifact && inputs.tag-name != 'draft' }}
@@ -437,9 +362,6 @@ jobs:
       - name: Display Files Structure
         run: |
           ls -R ./out
-          ls -R ./.github/
-          ls -R ./.git/
-          mv out/hiddify-android-market.aab  hiddify-android-market.aab
 
       - name: prepare_release_message
         run: |
@@ -451,68 +373,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          # prerelease: ${{ env.CHANNEL == 'dev' }}
-          prerelease: true
+          # Саме false: посилання /releases/latest/download/... на сайті
+          # пропускає передрелізи, і кнопка «Встановити» віддавала б 404.
+          prerelease: false
           tag_name: ${{ env.TAG_NAME }}
           body_path: './release.md'
           files: ./out/*
 
-      - name: Create service_account.json
-        run: echo '${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}' > service_account.json
-
-      - name: Deploy to Google Play Internal Testers
-        uses: r0adkll/upload-google-play@v1
-        with:
-          serviceAccountJson: service_account.json
-          packageName: app.hiddify.com
-          releaseName: ${{ env.TAG_NAME }}
-          releaseFiles: ./hiddify-android-market.aab
-          track: 'beta'
+      # Публікацію в Google Play видалено: вона заливала AAB у застосунок
+      # app.hiddify.com з чужим service account. Ми роздаємо APK з сайту.
 
 
-  upload-to-testflight:
-    needs: [build]
-    if: ${{ inputs.upload-artifact &&  inputs.tag-name != 'draft' }}
-    #if: ${{ inputs.upload-artifact }}
-    runs-on: macOS-latest
-    timeout-minutes: 30
-    steps:
-      - name: Download Artifact
-        uses: actions/download-artifact@v7
-        with:
-          merge-multiple: true
-          pattern: "*ios*"
-          path: ./out/
-
-      - uses: Apple-Actions/import-codesign-certs@v6
-        with:
-          p12-file-base64: ${{ secrets.APPLE_UPLOAD_CERTIFICATE_P12 }}
-          p12-password: ${{ secrets.APPLE_CERTIFICATE_P12_PASSWORD }}
-
-      - uses: Apple-Actions/download-provisioning-profiles@v1
-        with:
-          bundle-id: app.hiddify.com
-          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
-          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
-          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
-      - uses: Apple-Actions/download-provisioning-profiles@v1
-        with:
-          bundle-id: app.hiddify.com.SingBoxPacketTunnel
-          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
-          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
-          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
-  
-
-
-      - name: Import Apple Mobile Provisioning Profile
-        run: |
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          echo "${{secrets.APPLE_DIST_PROVISIONING_PROFILES_TARGZ_BASE64}}"|base64 --decode | tar xz -C ~/Library/MobileDevice/Provisioning\ Profiles
-        #echo "${{secrets.NEW_APPLE_STORE_PROVISIONING_PROFILES_TARXZ_BASE64}}"|base64 --decode | tar xJ -C ~/Library/MobileDevice/Provisioning\ Profiles
-
-      - uses: Apple-Actions/upload-testflight-build@v4
-        with:
-          app-path: 'out/Hiddify-iOS.ipa' 
-          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
-          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
-          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+  # Job'и update-draft і upload-to-testflight видалено:
+  #   update-draft — окрім чернетки в нашому репозиторії, пушив реліз ще й у
+  #     hiddify/hiddify-app під чужим токеном;
+  #   upload-to-testflight — потребує ключів Apple, яких у нас поки немає.
+  # TestFlight повернемо разом з платформою ios у матриці.

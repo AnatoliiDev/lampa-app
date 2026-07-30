@@ -271,7 +271,7 @@ android-apk-release:
 	  --targets apk \
 	  --skip-clean \
 	  --build-target=$(TARGET) \
-	  --build-target-platform=android-arm,android-arm64,android-x64 \
+	  --build-target-platform=android-arm,android-arm64 \
 	  --build-dart-define=sentry_dsn=$(SENTRY_DSN)
 	ls -R build/app/outputs
 
