@@ -1,4 +1,102 @@
 ﻿{
+  "common": {
+    "appTitle": "Лампа",
+    "start": "Почати",
+    "version": "Версія",
+    "ok": "OK",
+    "cancel": "Скасувати",
+    "kContinue": "Продовжити",
+    "showMore": "Показати більше",
+    "showLess": "Показати менше",
+    "filter": "Фільтр",
+    "all": "Усі",
+    "pause": "Пауза",
+    "resume": "Продовжити",
+    "clear": "Очистити",
+    "close": "Закрити",
+    "auto": "Авто",
+    "manually": "Вручну",
+    "name": "Назва",
+    "url": "URL",
+    "add": "Додати",
+    "clipboard": "Буфер обміну",
+    "addToClipboard": "Скопіювати в буфер",
+    "scanQr": "Сканувати QR",
+    "free": "Безкоштовно",
+    "warp": "WARP",
+    "fragment": "Фрагмент",
+    "help": "Довідка",
+    "save": "Зберегти",
+    "update": "Оновити",
+    "share": "Поділитися",
+    "edit": "Змінити",
+    "delete": "Видалити",
+    "discard": "Відхилити",
+    "import": "Імпорт",
+    "export": "Експорт",
+    "later": "Пізніше",
+    "ignore": "Ігнорувати",
+    "quit": "Вийти",
+    "notSet": "Не задано",
+    "hide": "Сховати",
+    "exit": "Вихід",
+    "reset": "Скинути",
+    "done": "Готово",
+    "decline": "Відхилити",
+    "agree": "Погоджуюсь",
+    "empty": "Порожньо",
+    "unknown": "Невідомо",
+    "hidden": "Приховано",
+    "timeout": "Час вичерпано",
+    "sort": "Сортування",
+    "dashboard": "Панель",
+    "disable": "Вимкнути",
+    "psiphon": "Psiphon",
+    "profile": "Профіль",
+    "configuration": "Конфігурація",
+    "file": "Файл",
+    "interval": {
+      "day": {
+        "zero": "",
+        "one": "$n день",
+        "other": "$n днів"
+      },
+      "hour": {
+        "zero": "",
+        "one": "$n година",
+        "other": "$n годин"
+      }
+    },
+    "msg": {
+      "permission": {
+        "denied": "Немає дозволу"
+      },
+      "export": {
+        "clipboard": {
+          "success": "Скопійовано в буфер",
+          "failure": "Не вдалося скопіювати",
+          "contentTooLarge": "Завеликий вміст. Скористайтеся експортом у файл"
+        },
+        "file": {
+          "success": "JSON-файл створено",
+          "failure": "Не вдалося створити файл"
+        }
+      },
+      "import": {
+        "confirm": "Підтвердити імпорт",
+        "success": "Імпортовано",
+        "failure": "Не вдалося імпортувати"
+      },
+      "autoSave": {
+        "success": "Зміни збережено автоматично"
+      }
+    }
+  },
+  "intro": {
+    "banner": "Усе, що потрібно для інтернету без обмежень",
+    "termsAndPolicyCaution(rich)": "Продовжуючи, ви погоджуєтесь з ${tap(@:pages.about.termsAndConditions)}",
+    "info(rich)": "Зроблено з ❤️ командою Hiddify - ${tap_source(Відкритий код)} (${tap_license(Ліцензія)})"
+  },
   "invite": {
     "title": "Введіть код запрошення",
     "subtitle": "Код дає той, хто поділився з вами додатком.",
@@ -9,6 +107,635 @@
       "used": "Цей код уже використано.",
       "tooMany": "Забагато спроб. Зачекайте хвилину.",
       "network": "Сервер недоступний. Перевірте зʼєднання."
+    }
+  },
+  "pages": {
+    "home": {
+      "title": "Головна",
+      "quickSettings": "Швидкі налаштування"
+    },
+    "proxies": {
+      "title": "Проксі",
+      "sort": "Сортувати проксі",
+      "testDelay": "Перевірити затримку",
+      "empty": "Немає доступних проксі",
+      "activeProxy": "Активний проксі",
+      "unknownIp": "Невідомий IP",
+      "sortOptions": {
+        "unsorted": "За замовчуванням",
+        "name": "За алфавітом",
+        "delay": "За затримкою",
+        "usage": "За використанням"
+      },
+      "ipInfo": {
+        "address": "IP-адреса",
+        "country": "Країна",
+        "organization": "Організація"
+      },
+      "delay": {
+        "result": "Затримка: ${delay} мс",
+        "timeout": "Час перевірки затримки вичерпано",
+        "testing": "Затримка: перевірка..."
+      }
+    },
+    "profiles": {
+      "title": "Профілі",
+      "add": "Додати профіль",
+      "update": "Оновити профіль",
+      "viewAllProfiles": "Показати всі профілі",
+      "activeProfileName": "Активний профіль: \"${name}\".",
+      "nonActiveProfileName": "Зробити \"${name}\" активним профілем",
+      "freeSubNotFound": "Безкоштовну підписку не знайдено",
+      "freeSubNotFoundForRegion": "Безкоштовну підписку для регіону \"${region}\" не знайдено.",
+      "failedToLoad": "Не вдалося завантажити",
+      "updateSubscriptions": "Оновити підписки",
+      "share": {
+        "urlToClipboard": "URL у буфер",
+        "showUrlQr": "Показати QR з URL",
+        "jsonToClipboard": "JSON у буфер"
+      },
+      "msg": {
+        "save": {
+          "success": "Профіль збережено"
+        },
+        "invalidUrl": "Некоректний URL",
+        "add": {
+          "failure": "Не вдалося додати профіль"
+        },
+        "update": {
+          "success": "Профіль оновлено",
+          "successNamed": "\"${name}\" оновлено",
+          "failure": "Не вдалося оновити профіль",
+          "failureNamed": "Не вдалося оновити \"${name}\""
+        },
+        "delete": {
+          "success": "Профіль видалено"
+        }
+      }
+    },
+    "profileDetails": {
+      "title": "Профіль",
+      "lastUpdate": "Останнє оновлення",
+      "form": {
+        "nameHint": "Назва профілю",
+        "emptyName": "Назва обовʼязкова",
+        "invalidUrl": "Некоректний URL",
+        "urlHint": "Повний URL конфігурації",
+        "disableAutoUpdate": "Вимкнути авто-оновлення",
+        "autoUpdateInterval": "Інтервал авто-оновлення",
+        "loading": "Додаємо профіль..."
+      }
+    },
+    "logs": {
+      "title": "Журнали",
+      "shareCoreLogs": "Поділитися журналом ядра",
+      "shareAppLogs": "Поділитися журналом додатка"
+    },
+    "about": {
+      "title": "Про додаток",
+      "notAvailableMsg": "Уже встановлена найновіша версія",
+      "checkForUpdate": "Перевірити оновлення",
+      "openWorkingDir": "Відкрити робочу теку",
+      "sourceCode": "Вихідний код",
+      "telegramChannel": "Канал у Telegram",
+      "termsAndConditions": "Умови використання",
+      "privacyPolicy": "Політика приватності"
+    },
+    "settings": {
+      "title": "Налаштування",
+      "resetTunnel": "Скинути VPN-профіль",
+      "options": {
+        "import": {
+          "clipboard": "Імпортувати налаштування з буфера",
+          "file": "Імпортувати налаштування з файлу"
+        },
+        "export": {
+          "anonymousToClipboard": "Скопіювати анонімні налаштування",
+          "anonymousToFile": "Експортувати анонімні налаштування у файл",
+          "allToClipboard": "Скопіювати всі налаштування",
+          "allToFile": "Експортувати всі налаштування у файл"
+        },
+        "reset": "Скинути налаштування"
+      },
+      "general": {
+        "title": "Загальні",
+        "locale": "Мова",
+        "themeMode": "Тема",
+        "themeModes": {
+          "system": "Як у системі",
+          "dark": "Темна",
+          "light": "Світла",
+          "black": "Чорна"
+        },
+        "enableAnalytics": "Увімкнути аналітику",
+        "enableAnalyticsMsg": "Дозволити збирати аналітику й надсилати звіти про збої, щоб покращувати додаток",
+        "autoIpCheck": "Автоматично перевіряти IP підключення",
+        "dynamicNotification": "Показувати швидкість у повідомленні",
+        "hapticFeedback": "Вібровідгук",
+        "actionAtClosing": "Дія при закритті",
+        "autoStart": "Запускати при вході",
+        "silentStart": "Запускати згорнутим",
+        "ignoreBatteryOptimizations": "Вимкнути оптимізацію батареї",
+        "ignoreBatteryOptimizationsMsg": "Зняти обмеження для стабільної роботи VPN",
+        "memoryLimit": "Обмеження памʼяті",
+        "memoryLimitMsg": "Увімкніть, якщо бачите помилки браку памʼяті або додаток часто аварійно закривається",
+        "debugMode": "Режим зневадження",
+        "debugModeMsg": "Перезапустіть додаток, щоб застосувати зміну",
+        "logLevel": "Рівень журналювання",
+        "connectionTestUrl": "URL перевірки підключення",
+        "urlTestInterval": "Інтервал перевірки URL",
+        "clashApiPort": "Порт Clash API",
+        "useXrayCoreWhenPossible": "Використовувати xray-core, якщо можливо",
+        "useXrayCoreWhenPossibleMsg": "Використовувати xray-core при розборі посилань підписки. Щоб це запрацювало, підписку треба додати заново."
+      },
+      "routing": {
+        "title": "Маршрутизація",
+        "routeRule": {
+          "empty": "Правил ще немає\n\nНатисніть +, щоб створити нове правило, або виберіть з готових",
+          "delete": "Видалити правило",
+          "create": "Створити правило",
+          "options": {
+            "import": {
+              "clipboard": "Імпортувати правила з буфера",
+              "file": "Імпортувати правила з файлу"
+            },
+            "export": {
+              "clipboard": "Скопіювати правила в буфер",
+              "file": "Зберегти правила у файл"
+            },
+            "reset": "Скинути правила"
+          },
+          "rule": {
+            "title": "Правило",
+            "onlyTunMode": "Доступно лише в режимі tun",
+            "notAvailabeInThisPlatform": "Недоступно на цій платформі",
+            "canNotBeEmpty": "Не може бути порожнім",
+            "validUrlEx": "https://example.com",
+            "validUrl": "Коректний \"URL\", як-от\n@:pages.settings.routing.routeRule.rule.validUrlEx",
+            "validProcessNameEx": "Chrome.exe or google chrome or chrome",
+            "validProcessName": "Коректна \"назва процесу\", як-от\n@:pages.settings.routing.routeRule.rule.validProcessNameEx",
+            "validProcessPathEx": "C:\\Pro...\\chrome.exe\n/App.../Google Chrome\n/usr/lib.../chrome",
+            "validProcessPath": "Коректний \"шлях до процесу\", як-от\n@:pages.settings.routing.routeRule.rule.validProcessPathEx",
+            "validPortRangeEx": "80 or 1:65000",
+            "validPortRange": "Коректний \"порт\" або \"діапазон портів\", як-от\n@:pages.settings.routing.routeRule.rule.validPortRangeEx",
+            "validIpCidrEx": "8.8.8.8 or 10.0.0.0/24",
+            "validIpCidr": "Коректний IP CIDR, як-от\n@:pages.settings.routing.routeRule.rule.validIpCidrEx",
+            "validDomainEx": "Google.com or dl.google.com",
+            "validDomain": "Коректний \"домен\", як-от\n@:pages.settings.routing.routeRule.rule.validDomainEx",
+            "validDomainSuffixEx": ".com or .ir",
+            "validDomainSuffix": "Коректний \"суфікс домену\", як-от\n@:pages.settings.routing.routeRule.rule.validDomainSuffixEx",
+            "tileTitle(map)": {
+              "name": "Назва",
+              "outbound": "Вихід при збігу",
+              "rule_set": "URL набору правил",
+              "package_name": "Назви пакетів",
+              "process_name": "Назви процесів",
+              "process_path": "Шляхи процесів",
+              "network": "Мережі",
+              "port_range": "Порти призначення",
+              "source_port_range": "Порти джерела",
+              "protocol": "Протокол",
+              "ip_cidr": "IP CIDR призначення",
+              "source_ip_cidr": "IP CIDR джерела",
+              "domain": "Домен",
+              "domain_suffixe": "Суфікс домену",
+              "domain_keyword": "Ключове слово домену",
+              "domain_regex": "Регулярний вираз домену"
+            },
+            "outbound(map)": {
+              "proxy": "Проксі",
+              "direct": "Напряму",
+              "direct_with_fragment": "Напряму з фрагментацією",
+              "block": "Блокувати"
+            },
+            "network(map)": {
+              "all": "Усі",
+              "tcp": "TCP",
+              "udp": "UDP"
+            },
+            "protocol(map)": {
+              "": "Усі",
+              "tls": "TLS",
+              "http": "HTTP",
+              "quic": "QUIC",
+              "stun": "STUN",
+              "dns": "DNS",
+              "bittorrent": "BitTorrent"
+            }
+          },
+          "genericList": {
+            "addNew": "Додати значення",
+            "update": "Змінити значення",
+            "clearList": "Очистити список",
+            "clearListMsg": "Усі елементи видалено"
+          }
+        },
+        "generalOptions": {
+          "title": "Загальні налаштування маршрутів",
+          "region": "Регіон",
+          "regions": {
+            "ir": "Іран (ir)",
+            "cn": "Китай (cn)",
+            "ru": "Росія (ru)",
+            "af": "Афганістан (af)",
+            "id": "Індонезія (id)",
+            "tr": "Туреччина (tr)",
+            "br": "Бразилія (br)",
+            "other": "Інший"
+          },
+          "balancerStrategy": {
+            "title": "Стратегія балансування",
+            "roundRobin": "По колу",
+            "consistentHash": "Консистентне хешування",
+            "stickySession": "Закріплена сесія"
+          },
+          "resolveDestination": "Розвʼязувати призначення",
+          "ipv6Route": "Маршрут IPv6",
+          "ipv6Modes": {
+            "disable": "Вимкнено",
+            "enable": "Увімкнено",
+            "prefer": "Переважно",
+            "only": "Виключно"
+          },
+          "perAppProxy": {
+            "title": "Проксі для окремих додатків",
+            "hideSysApps": "Сховати системні додатки",
+            "options": {
+              "import": {
+                "clipboard": "Імпортувати вибір з буфера",
+                "file": "Імпортувати вибір з файлу",
+                "msg": "Імпорт замінить ваш поточний вибір. Продовжити?"
+              },
+              "export": {
+                "clipboard": "Скопіювати вибір у буфер",
+                "file": "Експортувати вибір у файл"
+              },
+              "shareToAll": "Поділитися з усіма",
+              "clearAllSelections": "Очистити весь вибір"
+            },
+            "modes": {
+              "all": "Усі",
+              "proxy": "Проксі",
+              "bypass": "Обхід",
+              "allMsg": "Проксувати всі додатки",
+              "proxyMsg": "Проксувати лише вибрані додатки",
+              "bypassMsg": "Не проксувати вибрані додатки"
+            },
+            "autoSelection": {
+              "title": "Автоматичний вибір",
+              "performNow": "Виконати зараз",
+              "resetToDefault": "Скинути до типового",
+              "autoUpdateInterval": "Інтервал авто-оновлення",
+              "toast": {
+                "success": "Автоматичний вибір додатків завершено",
+                "failure": "Автоматичний вибір не вдався",
+                "regionNotFound": "Автоматичний вибір не знайдено, регіон \"${region}\"",
+                "alreadyInAuto": "Ваш вибір уже є в автоматичному списку"
+              },
+              "dialog": {
+                "title": "Автоматичний вибір додатків",
+                "msg": "Автоматичний вибір для проксі окремих додатків вимкнено через зміну регіону на \"${region}\""
+              }
+            }
+          }
+        },
+        "predefinedRules": {
+          "title": "Готові правила",
+          "ads": {
+            "name": "Блокувати рекламу",
+            "description": ""
+          },
+          "bypassLan": {
+            "name": "Обходити локальну мережу",
+            "description": ""
+          }
+        }
+      },
+      "dns": {
+        "title": "DNS",
+        "remoteDns": "Віддалений DNS",
+        "remoteDnsDomainStrategy": "Стратегія доменів віддаленого DNS",
+        "directDns": "Резолвер вихідного сервера (напряму)",
+        "directDnsDomainStrategy": "Стратегія доменів для вихідних",
+        "enableFakeDns": "Увімкнути fake DNS",
+        "domainStrategy": {
+          "auto": "Авто",
+          "preferIpv6": "Переважно IPv6",
+          "preferIpv4": "Переважно IPv4",
+          "ipv4Only": "Лише IPv4",
+          "ipv6Only": "Лише IPv6"
+        }
+      },
+      "inbound": {
+        "title": "Вхідні",
+        "serviceMode": "Режим служби",
+        "serviceModes": {
+          "proxy": "Лише проксі-служба",
+          "systemProxy": "Задати системний проксі",
+          "tun": "VPN"
+        },
+        "shortServiceModes": {
+          "proxy": "Проксі",
+          "systemProxy": "Системний проксі",
+          "tun": "VPN"
+        },
+        "strictRoute": "Строга маршрутизація",
+        "tunImplementation": "Реалізація tun",
+        "tunImplementations": {
+          "mixed": "Змішана",
+          "system": "Системна",
+          "gvisor": "gVisor"
+        },
+        "mixedPort": "Змішаний порт",
+        "tproxyPort": "Порт прозорого проксі",
+        "directPort": "Прямий порт",
+        "redirectPort": "Порт перенаправлення",
+        "lanSharing": "Спільний доступ до VPN",
+        "lanSharingPasswordNotSet": "Пароль не заданий",
+        "lanSharingPassword": "Пароль спільного доступу",
+        "copyLink": "Скопіювати посилання",
+        "qrCode": "QR-код",
+        "lanIPError": "Не вдалося отримати локальну IP-адресу"
+      },
+      "tlsTricks": {
+        "title": "Трюки TLS",
+        "enable": "Увімкнути фрагментацію",
+        "packets": "Пакети фрагментації",
+        "packetsTlsHello": "TLS Hello",
+        "packets1_1": "1-1",
+        "packets1_2": "1-2",
+        "packets1_3": "1-3",
+        "packets1_4": "1-4",
+        "packets1_5": "1-5",
+        "size": "Розмір фрагмента",
+        "sleep": "Пауза між фрагментами",
+        "mixedSniCase": {
+          "enable": "Увімкнути змішаний регістр SNI"
+        },
+        "padding": {
+          "enable": "Увімкнути заповнення",
+          "size": "Розмір заповнення"
+        }
+      },
+      "chain": {
+        "title": "Ланцюг",
+        "subtitle": "Додаткова безпека та обхід блокувань",
+        "finalIp": "Кінцевий IP",
+        "levels": {
+          "app": {
+            "title": "Додаток",
+            "msg": "Початок: трафік додатка входить у ланцюг тут і проходить наступні шари, готуючись до фінального обходу"
+          },
+          "extraSecurity": {
+            "title": "Додаткова безпека",
+            "msg": "Додає ще один щит, щоб зберегти ваші дані приватними, навіть якщо основний профіль не викликає довіри"
+          },
+          "mainProfile": {
+            "title": "Основний профіль"
+          },
+          "unblocker": {
+            "title": "Обхід блокувань",
+            "msg": "Допомагає обійти мережеві обмеження. Якщо помічник підключиться, основний профіль зможе працювати навіть коли він заблокований"
+          },
+          "filtering": {
+            "title": "Фільтрація",
+            "msg": "Фінальний вихід: пройшовши активні шари (додаткова безпека, основний профіль або обхід блокувань) і застосувавши їхні ефекти, ваш трафік нарешті прямує в обхід локальної фільтрації"
+          }
+        },
+        "warp": {
+          "missingConfig": "Немає конфігурації WARP",
+          "licenseKey": "Ліцензійний ключ",
+          "cleanIp": "Чистий IP",
+          "port": "Порт",
+          "noise": {
+            "count": "Кількість шуму",
+            "mode": "Режим шуму",
+            "size": "Розмір шуму",
+            "delay": "Затримка шуму"
+          }
+        },
+        "psiphon": {
+          "selectServerRegion": "Виберіть регіон сервера",
+          "regions": {
+            "auto": "@:common.auto",
+            "at": "Австрія (at)",
+            "au": "Австралія (au)",
+            "be": "Бельгія (be)",
+            "bg": "Болгарія (bg)",
+            "ca": "Канада (ca)",
+            "ch": "Швейцарія (ch)",
+            "cz": "Чехія (cz)",
+            "de": "Німеччина (de)",
+            "dk": "Данія (dk)",
+            "ee": "Естонія (ee)",
+            "es": "Іспанія (es)",
+            "fi": "Фінляндія (fi)",
+            "fr": "Франція (fr)",
+            "gb": "Велика Британія (gb)",
+            "hr": "Хорватія (hr)",
+            "hu": "Угорщина (hu)",
+            "ie": "Ірландія (ie)",
+            "in": "Індія (in)",
+            "it": "Італія (it)",
+            "jp": "Японія (jp)",
+            "lv": "Латвія (lv)",
+            "nl": "Нідерланди (nl)",
+            "no": "Норвегія (no)",
+            "pl": "Польща (pl)",
+            "pt": "Португалія (pt)",
+            "ro": "Румунія (ro)",
+            "rs": "Сербія (rs)",
+            "se": "Швеція (se)",
+            "sg": "Сінгапур (sg)",
+            "sk": "Словаччина (sk)",
+            "us": "США (us)"
+          }
+        },
+        "profile": {
+          "selectProfile": "Виберіть профіль",
+          "conduitPairingId": "ID звʼязки Conduit"
+        }
+      }
+    }
+  },
+  "components": {
+    "stats": {
+      "connection": "Підключення",
+      "traffic": "Трафік",
+      "trafficLive": "Трафік у реальному часі",
+      "trafficTotal": "Загальний трафік",
+      "uplink": "Вихідний",
+      "downlink": "Вхідний",
+      "speed": "Швидкість",
+      "totalTransferred": "Усього передано"
+    },
+    "subscriptionInfo": {
+      "upload": "Вивантаження",
+      "download": "Завантаження",
+      "total": "Загальний трафік",
+      "expireDate": "Дата закінчення",
+      "expired": "Термін вичерпано",
+      "noTraffic": "Ліміт вичерпано",
+      "remainingTime": "Залишилось часу",
+      "remainingDuration": "Залишилось ${duration} днів",
+      "remainingDurationNew": "${duration} днів",
+      "remainingTrafficSemanticLabel": "Використано ${consumed} з ${total} трафіку",
+      "remainingTraffic": "Залишок трафіку",
+      "remainingUsage": "Залишок",
+      "profileSite": "Постачальник",
+      "profileSupport": "Підтримка"
+    }
+  },
+  "dialogs": {
+    "sortProfiles": {
+      "title": "Сортувати за",
+      "sort": {
+        "name": "За алфавітом",
+        "lastUpdate": "Нещодавно оновлені"
+      }
+    },
+    "warpLicense": {
+      "title": "Згода на Cloudflare WARP",
+      "description(rich)": "Cloudflare WARP — безкоштовний постачальник WireGuard VPN. Увімкнувши цю опцію, ви погоджуєтесь з ${tos(Умовами використання)} та ${privacy(Політикою приватності)} Cloudflare WARP."
+    },
+    "psiphonLicense": {
+      "title": "Ліцензійна угода Psiphon",
+      "description(rich)": "Користуючись Psiphon, ви погоджуєтесь з ${tos(Умовами використання)} і підтверджуєте ${privacy(Політику приватності)}. Прочитайте їх уважно, перш ніж продовжити."
+    },
+    "newVersion": {
+      "title": "Доступне оновлення",
+      "msg": "Доступна нова версія @:common.appTitle. Оновити зараз?",
+      "currentVersion": "Поточна версія: ",
+      "newVersion": "Нова версія: ",
+      "updateNow": "Оновити зараз"
+    },
+    "confirmation": {
+      "settings": {
+        "import": {
+          "msg": "Це перезапише всі налаштування наданими значеннями. Ви впевнені?"
+        }
+      },
+      "profile": {
+        "delete": {
+          "title": "Видалити профіль",
+          "msg": "Ви впевнені, що хочете назавжди видалити цей профіль?"
+        }
+      },
+      "perAppProxy": {
+        "shareOnGithub": {
+          "title": "Покращення автоматичного вибору",
+          "msg": "Поділившись вибраними додатками, ви допомагаєте доповнити список \"автоматичного вибору\""
+        },
+        "import": {
+          "msg": "Це замінить увесь ваш поточний вибір проксі для додатків. Продовжити?"
+        }
+      },
+      "routeRule": {
+        "delete": {
+          "title": "Видалити правило",
+          "msg": "Ви впевнені, що хочете видалити правило \"$rulename\"?"
+        }
+      },
+      "addProfileByDeepLinkWarning": {
+        "title": "Додати профіль?",
+        "message": "Зовнішнє посилання з \"${host}\" просить додати новий профіль. Імпортувати його?"
+      },
+      "importRouteRuleByDeepLinkWarning": {
+        "title": "Імпортувати правило маршрутизації?",
+        "message": "Імпорт правил маршрутизації з ненадійних джерел може бути небезпечним\nПродовжуйте лише якщо довіряєте цьому посиланню"
+      }
+    },
+    "experimentalNotice": {
+      "title": "Використовуються експериментальні функції",
+      "msg": "Ви увімкнули експериментальні функції, які можуть впливати на якість підключення й спричиняти неочікувані помилки. Ці налаштування завжди можна змінити або скинути на сторінці налаштувань.",
+      "disable": "Більше не показувати"
+    },
+    "noActiveProfile": {
+      "title": "Виберіть профіль",
+      "msg": "Почнімо з додавання профілю підключення з даними вашого VPN.\n\nЩе не маєте VPN-сервера? Не проблема — скористайтеся інструкцією нижче, щоб швидко й безкоштовно його налаштувати.",
+      "helpBtn": {
+        "label": "Показати як",
+        "url": "https://hiddify.com/manager/"
+      }
+    },
+    "unknownDomainsWarning": {
+      "title": "Попередження про зовнішнє посилання",
+      "youAreAboutToVisit": "Ви збираєтесь відкрити:",
+      "thisWebsiteIsNotInOurTrustedList": "Цей сайт не входить до нашого списку довірених. Будьте обережні."
+    },
+    "proxyInfo": {
+      "fullTag": "Повний тег:",
+      "type": "Тип:",
+      "testTime": "Час перевірки:",
+      "testDelay": "Затримка:",
+      "isSelected": "Вибрано:",
+      "isGroup": "Це група",
+      "isSecure": "Захищено:",
+      "port": "Порт:",
+      "host": "Хост:",
+      "ip": "IP:",
+      "countryCode": "Код країни:",
+      "region": "Регіон:",
+      "city": "Місто:",
+      "asn": "ASN:",
+      "organization": "Організація:",
+      "location": "Розташування:",
+      "postalCode": "Поштовий код:",
+      "download": "Завантаження:",
+      "upload": "Вивантаження:"
+    },
+    "windowClosing": {
+      "askEachTime": "Питати щоразу",
+      "alertMessage": "Сховати чи вийти з додатка?",
+      "remember": "Запамʼятати мій вибір"
+    }
+  },
+  "connection": {
+    "tapToConnect": "Натисніть, щоб підключитися",
+    "connect": "Підключити",
+    "connecting": "Підключення...",
+    "connected": "Підключено",
+    "disconnect": "Відключити",
+    "disconnecting": "Відключення...",
+    "reconnect": "Перепідключити",
+    "reconnectMsg": "Перепідключення, щоб застосувати зміни..."
+  },
+  "errors": {
+    "unexpected": "Неочікувана помилка",
+    "connection": {
+      "unexpected": "Неочікувана помилка підключення",
+      "timeout": "Час підключення вичерпано",
+      "badResponse": "Некоректна відповідь",
+      "connectionError": "Помилка підключення",
+      "badCertificate": "Некоректний сертифікат"
+    },
+    "profiles": {
+      "unexpected": "Неочікувана помилка",
+      "notFound": "Профіль не знайдено",
+      "invalidConfig": "Некоректні конфігурації",
+      "invalidUrl": "Некоректний URL",
+      "canceledByUser": "Скасовано користувачем"
+    },
+    "connectivity": {
+      "unexpected": "Неочікувана помилка",
+      "missingVpnPermission": "Немає дозволу на VPN",
+      "missingNotificationPermission": "Немає дозволу на повідомлення",
+      "core": "Помилка ядра"
+    },
+    "singbox": {
+      "serviceNotRunning": "Служба не запущена",
+      "missingPrivilege": "Недостатньо прав",
+      "missingPrivilegeMsg": "Режим VPN потребує прав адміністратора. Перезапустіть додаток від адміністратора або змініть режим служби.",
+      "invalidConfigOptions": "Некоректні параметри конфігурації",
+      "invalidConfig": "Некоректна конфігурація"
+    },
+    "warp": {
+      "missingLicense": "Потрібна ліцензія WARP",
+      "missingLicenseMsg": "Вибраний профіль використовує WARP; щоб скористатися цією функцією, потрібно погодитися з ліцензією WARP"
+    },
+    "psiphon": {
+      "missingLicense": "Потрібна ліцензія Psiphon",
+      "missingLicenseMsg": "Вибраний профіль використовує Psiphon; щоб скористатися цією функцією, потрібно погодитися з ліцензією Psiphon"
     }
   }
 }
