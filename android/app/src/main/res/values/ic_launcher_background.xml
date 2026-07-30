@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#F0F3FA</color>
+    <!-- Той самий синій, що акцент на сайті — щоб кнопка «Встановити» і
+         іконка на телефоні читалися як одне ціле. -->
+    <color name="ic_launcher_background">#2F6DF6</color>
 </resources>
