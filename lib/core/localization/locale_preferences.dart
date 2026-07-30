@@ -10,7 +10,10 @@ class LocalePreferences extends _$LocalePreferences with AppLogger {
   @override
   AppLocale build() {
     final persisted = ref.watch(sharedPreferencesProvider).requireValue.getString("locale");
-    if (persisted == null) return AppLocaleUtils.findDeviceLocale();
+    // Російська за замовчуванням, а не локаль пристрою: так усі бачать
+    // однаковий інтерфейс незалежно від налаштувань телефона. Мову можна
+    // змінити в налаштуваннях, і вибір запам'ятовується.
+    if (persisted == null) return AppLocale.ru;
     // keep backward compatibility with chinese after changing zh to zh_CN
     if (persisted == "zh") {
       return AppLocale.zhCn;
@@ -19,7 +22,7 @@ class LocalePreferences extends _$LocalePreferences with AppLogger {
       return AppLocale.values.byName(persisted);
     } catch (e) {
       loggy.error("error setting locale: [$persisted]", e);
-      return AppLocale.en;
+      return AppLocale.ru;
     }
   }
 
