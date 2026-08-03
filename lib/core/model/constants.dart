@@ -6,12 +6,11 @@ abstract class Constants {
   static const appName = "Лампа";
 
   /// Адреса вашого сервера — звідси додаток гасить код-запрошення й тягне
-  /// профіль. Значення за замовчуванням треба замінити на реальний домен
-  /// перед першим релізом, або передати при збірці:
-  ///   flutter build apk --dart-define=LAMPA_API_BASE=https://vpn.example.com
+  /// профіль. Можна перевизначити при збірці:
+  ///   flutter build apk --dart-define=LAMPA_API_BASE=https://інший-домен
   static const apiBase = String.fromEnvironment(
     'LAMPA_API_BASE',
-    defaultValue: 'https://vpn.example.com',
+    defaultValue: 'https://19851984.xyz',
   );
 
   static const repoUrl = "https://github.com/AnatoliiDev/vpn-tool-app";
