@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hiddify/core/localization/translations.dart';
+import 'package:hiddify/core/model/constants.dart';
 import 'package:hiddify/features/app_update/model/remote_version_entity.dart';
 import 'package:hiddify/features/app_update/notifier/app_update_notifier.dart';
 import 'package:hiddify/utils/utils.dart';
@@ -57,7 +58,11 @@ class NewVersionDialog extends HookConsumerWidget with PresLogger {
         TextButton(onPressed: context.pop, child: Text(t.common.later)),
         TextButton(
           onPressed: () async {
-            await UriUtils.tryLaunch(Uri.parse(newVersion.url));
+            // Не newVersion.url: там html_url з GitHub API, тобто сторінка
+            // релізу зі списком файлів під різні архітектури — вибирати з них
+            // людина не мусить. Ведемо на сайт, де одна кнопка сама віддає
+            // потрібний APK. Перевірка версій при цьому й далі йде до GitHub.
+            await UriUtils.tryLaunch(Uri.parse(Constants.apiBase));
           },
           child: Text(t.dialogs.newVersion.updateNow),
         ),
