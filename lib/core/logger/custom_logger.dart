@@ -70,22 +70,50 @@ class FileLogPrinter extends LoggyPrinter {
     }
   }
 
+  DateTime _lastFlush = DateTime.fromMillisecondsSinceEpoch(0);
+  bool _broken = false;
+
   @override
   void onLog(LogRecord record) {
-    final time = record.time.toIso8601String().split('T')[1];
-    _sink.writeln("$time - $record");
-    if (record.error != null) {
-      _sink.writeln(record.error);
+    // Логер не має права зламати те, що він логує. Під час bootstrap рядків
+    // сотні, і виняток звідси — наприклад, якщо sink впав в помилку — обірвав
+    // би сам запуск застосунку. Тому все загорнуте, а після першої поломки
+    // друкуємо лише в консоль і більше файл не чіпаємо.
+    if (_broken) return;
+    try {
+      final time = record.time.toIso8601String().split('T')[1];
+      _sink.writeln("$time - $record");
+      if (record.error != null) {
+        _sink.writeln(record.error);
+      }
+      if (record.stackTrace != null) {
+        _sink.writeln(record.stackTrace);
+      }
+
+      // Скидання на диск потрібне, щоб при падінні процесу не загубився хвіст —
+      // саме він і пояснює причину. Але робити це на кожен рядок не можна:
+      // паралельні flush() на одному файлі накопичуються й здатні вкинути sink
+      // у помилку. Тому помилки скидаємо одразу, решту — не частіше разу на
+      // півсекунди.
+      final now = DateTime.now();
+      if (record.level.priority >= LogLevel.warning.priority ||
+          now.difference(_lastFlush) > const Duration(milliseconds: 500)) {
+        _lastFlush = now;
+        _sink.flush().ignore();
+      }
+    } catch (error, stackTrace) {
+      _broken = true;
+      // ignore: avoid_print
+      print('FileLogPrinter вимкнено після помилки: $error\n$stackTrace');
     }
-    if (record.stackTrace != null) {
-      _sink.writeln(record.stackTrace);
-    }
-    // Скидаємо на диск одразу. Інакше при падінні процесу останні рядки — саме
-    // ті, заради яких усе й затівалося, — лишаються в буфері й гинуть з ним.
-    _sink.flush().ignore();
   }
 
   void dispose() {
-    _sink.close();
+    if (_broken) return;
+    try {
+      _sink.close();
+    } catch (_) {
+      // Закривати нема чого — і добре.
+    }
   }
 }

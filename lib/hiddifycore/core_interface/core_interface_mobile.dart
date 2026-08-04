@@ -52,11 +52,18 @@ class CoreInterfaceMobile extends CoreInterface with InfraLogger {
     final alerts = alertsChannel.receiveBroadcastStream().map(CoreStatus.fromEvent);
 
     _status = LastStream(ValueConnectableStream(Rx.merge([status, alerts])).autoConnect());
+    // Обидва виклики з дедлайном. Без нього gRPC чекає відповіді вічно, і якщо
+    // ядро не піднялося, bootstrap не завершується взагалі — застосунок навіки
+    // лишається на екрані запуску, без помилки й без падіння.
     try {
-      await helloClient.sayHello(HelloRequest(name: "test"));
+      await helloClient.sayHello(
+        HelloRequest(name: "test"),
+        options: CallOptions(timeout: const Duration(seconds: 5)),
+      );
       loggy.info("core is already started!");
     } catch (e) {
       //core is not started yet
+      loggy.info("ядро ще не піднято ($e), запускаю");
 
       await methodChannel.invokeMethod("setup", {
         "baseDir": directories.baseDir.path,
@@ -66,8 +73,17 @@ class CoreInterfaceMobile extends CoreInterface with InfraLogger {
         "mode": mode,
         "debug": debug,
       });
-      final res = await helloClient.sayHello(HelloRequest(name: "test"));
-      loggy.info(res.toString());
+      try {
+        final res = await helloClient.sayHello(
+          HelloRequest(name: "test"),
+          options: CallOptions(timeout: const Duration(seconds: 20)),
+        );
+        loggy.info(res.toString());
+      } catch (error) {
+        // Далі йдемо однаково: інтерфейс має відкритися й показати, що ядро
+        // недоступне, а не висіти на заставці.
+        loggy.error("ядро не відповіло після setup", error);
+      }
     }
 
     // serverPublicKey = await methodChannel.invokeMethod<Uint8List>("get_grpc_server_public_key") ?? Uint8List.fromList([]);
