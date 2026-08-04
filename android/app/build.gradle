@@ -90,7 +90,10 @@ android {
             //noinspection ChromeOsAbiSupport
             include "armeabi-v7a", "arm64-v8a"
 
-            universalApk true
+            // Без universal: він важив 298 МБ, його ніхто не ставив (сайт веде
+            // на arm64, для старих телефонів є arm7), а час на нього витрачався
+            // двічі — при пакуванні й при перекиданні артефакту між задачами.
+            universalApk false
         }
     }
 
