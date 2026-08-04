@@ -60,11 +60,16 @@ class RoutingConfigNotifier extends _$RoutingConfigNotifier {
   @override
   RoutingConfig build() {
     final isMobileBreakpoint = ref.watch(isMobileBreakpointProvider);
+    // Стежимо за наявністю профілю саме тут, у build, а не всередині redirect:
+    // тільки так зміна стріму гарантовано перебудовує RoutingConfig, і go_router
+    // переобчислює редіректи. Раніше на телефоні (isMobileBreakpoint == true)
+    // цей провайдер у build не читався зовсім.
+    final hasAnyProfile = ref.watch(hasAnyProfileProvider).value;
     final bool showProfilesAction;
     if (isMobileBreakpoint == true) {
       showProfilesAction = false;
     } else {
-      showProfilesAction = ref.watch(hasAnyProfileProvider).value ?? false;
+      showProfilesAction = hasAnyProfile ?? false;
     }
     if (isMobileBreakpoint == null) return loadingConfig;
     return RoutingConfig(
@@ -106,13 +111,18 @@ class RoutingConfigNotifier extends _$RoutingConfigNotifier {
           final uri = Uri.parse(url);
           final path = uri.path + (uri.hasQuery ? "?${uri.query}" : "");
           return path;
-        } else if (ref.watch(hasAnyProfileProvider).value == false && state.matchedLocation != '/invite') {
+        } else if (hasAnyProfile == true && state.matchedLocation == '/invite') {
+          // Профіль зʼявився — тримати екран коду більше нема сенсу. Вихід саме
+          // звідси, а не з InvitePage: між записом профілю і першим значенням
+          // стріму drift є проміжок, і зроблений одразу context.go('/home')
+          // редірект нижче встигав повернути назад.
+          return '/home';
+        } else if (hasAnyProfile == false && state.matchedLocation != '/invite') {
           // Профілю ще немає — показувати нема чого, ведемо на введення коду.
           // Порівняння саме з false: поки стрім вантажиться, value == null,
           // і смикати редірект на кожен старт застосунку не варто.
           return '/invite';
-        } else if (state.matchedLocation.contains('chain-options') &&
-            (ref.watch(hasAnyProfileProvider).value == false)) {
+        } else if (state.matchedLocation.contains('chain-options') && hasAnyProfile == false) {
           // Prevent showing chainOptions while hasAnyProfile == false
           return '/settings';
         }
