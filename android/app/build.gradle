@@ -81,9 +81,18 @@ android {
         multiDexEnabled true
     }
 
+    // Перелік ABI приходить із двох джерел, і вони конфліктують:
+    //   * локально `flutter build apk --split-per-abi` передає -Psplit-per-abi
+    //     і сам звужує abiFilters до потрібних архітектур;
+    //   * CI збирає через fastforge, де прапорця немає, і Flutter лишає типові
+    //     три ABI — тому там перелік доводиться звужувати вручну.
+    // AGP не пускає abiFilters разом із увімкненим splits, тож вмикаємо рівно
+    // одне з двох залежно від того, як нас запустили.
+    def flutterSplitsAbi = project.hasProperty('split-per-abi')
+
     splits {
         abi {
-            enable true
+            enable !flutterSplitsAbi
             reset()
             // Саме цей список, а не abiFilters нижче, керує тим, які APK
             // виробляє gradle. x86_64 прибрано: це архітектура емуляторів.
@@ -116,13 +125,14 @@ android {
                 signingConfig signingConfigs.debug
             }
             ndk {
-                // abiFilters тут навмисно немає: перелік архітектур задає блок
-                // splits вище, а тримати обидва AGP забороняє — «Conflicting
-                // configuration ... cannot be present when splits abi filters
-                // are set». У CI це не спливало, бо fastforge задає перелік
-                // платформ сам, а при звичайному flutter build конфігурація
-                // навіть не доходила до компіляції.
-                //
+                // Лише коли splits вимкнено — див. пояснення вище.
+                // x86_64 прибрано: це архітектура емуляторів, серед реальних
+                // телефонів її практично немає, а нативні бібліотеки ядра
+                // важать десятки мегабайт на кожну ABI.
+                if (!flutterSplitsAbi) {
+                    //noinspection ChromeOsAbiSupport
+                    abiFilters "armeabi-v7a", "arm64-v8a"
+                }
                 // Символи потрібні для читабельних крешів у Play Console, куди
                 // ми не публікуємось. У релізі v0.0.1 вони дали APK на 341 МБ —
                 // непідйомно для роздачі кнопкою з сайту.
