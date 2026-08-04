@@ -25,10 +25,12 @@ class LoggerController extends LoggyPrinter with InfraLogger {
   }
 
   static Future<void> postInit(bool debugMode) async {
-    final logLevel = debugMode && false ? LogLevel.all : LogLevel.info;
-    final logToFile = debugMode || (!Platform.isAndroid && !Platform.isIOS);
-
-    if (!logToFile || kIsWeb) _instance.removePrinter("app");
+    final logLevel = debugMode ? LogLevel.all : LogLevel.info;
+    // Пишемо у файл завжди, а не лише в режимі налагодження, як було в
+    // оригіналі. Інакше на Android у релізі логів не існує зовсім — а саме тоді
+    // вони й потрібні: коли людина каже «не працює», з телефона нема чого взяти.
+    // Рівень за замовчуванням info, тож файл росте повільно.
+    if (kIsWeb) _instance.removePrinter("app");
 
     Loggy.initLoggy(logPrinter: _instance, logOptions: LogOptions(logLevel));
   }

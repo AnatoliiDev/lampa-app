@@ -8,6 +8,7 @@ import 'package:hiddify/core/model/failures.dart';
 import 'package:hiddify/core/preferences/general_preferences.dart';
 import 'package:hiddify/core/widget/adaptive_icon.dart';
 import 'package:hiddify/features/log/data/log_data_providers.dart';
+import 'package:hiddify/features/log/data/report_sender.dart';
 import 'package:hiddify/features/log/model/log_level.dart';
 import 'package:hiddify/features/log/overview/logs_overview_notifier.dart';
 import 'package:hiddify/utils/utils.dart';
@@ -28,28 +29,86 @@ class LogsPage extends HookConsumerWidget with PresLogger {
 
     final filterController = useTextEditingController(text: state.filter);
 
-    final List<PopupMenuEntry> popupButtons = debug || PlatformUtils.isDesktop
-        ? [
-            PopupMenuItem(
-              child: Text(t.pages.logs.shareCoreLogs),
-              onTap: () async {
-                await UriUtils.tryShareOrLaunchFile(
-                  Uri.parse(pathResolver.coreFile().path),
-                  fileOrDir: pathResolver.directory.uri,
-                );
-              },
+    // Рядки нижче навмисно не через slang: інтерфейс зафіксовано російською
+    // (див. locale_preferences.dart), а заводити ключі в одинадцять локалей
+    // заради одного діалогу зайве. Повернеться вибір мови — переїдуть і вони.
+    Future<void> sendReport() async {
+      final controller = TextEditingController();
+      final note = await showDialog<String>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Отправить отчёт об ошибке'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Логи приложения и ядра уйдут на сервер. Опишите в двух словах, '
+                'что вы делали — так проще найти причину.',
+              ),
+              const Gap(12),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  hintText: 'Нажал «Подключить», приложение закрылось',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Отмена')),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, controller.text),
+              child: const Text('Отправить'),
             ),
-            PopupMenuItem(
-              child: Text(t.pages.logs.shareAppLogs),
-              onTap: () async {
-                await UriUtils.tryShareOrLaunchFile(
-                  Uri.parse(pathResolver.appFile().path),
-                  fileOrDir: pathResolver.directory.uri,
-                );
-              },
-            ),
-          ]
-        : [];
+          ],
+        ),
+      );
+      if (note == null || !context.mounted) return;
+
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(const SnackBar(content: Text('Отправляем…')));
+      try {
+        final id = await ref.read(reportSenderProvider).send(note: note);
+        messenger.showSnackBar(
+          SnackBar(content: Text('Отчёт отправлен: $id'), duration: const Duration(seconds: 8)),
+        );
+      } catch (error) {
+        loggy.warning('не вдалося надіслати звіт', error);
+        messenger.showSnackBar(SnackBar(content: Text('Не удалось отправить: $error')));
+      }
+    }
+
+    final List<PopupMenuEntry> popupButtons = [
+      // Доступно завжди, а не лише в режимі налагодження: саме тоді, коли все
+      // ламається, людина найменше схильна шукати приховані перемикачі.
+      PopupMenuItem(
+        onTap: sendReport,
+        child: const Text('Отправить отчёт об ошибке'),
+      ),
+      if (debug || PlatformUtils.isDesktop) ...[
+        PopupMenuItem(
+          child: Text(t.pages.logs.shareCoreLogs),
+          onTap: () async {
+            await UriUtils.tryShareOrLaunchFile(
+              Uri.parse(pathResolver.coreFile().path),
+              fileOrDir: pathResolver.directory.uri,
+            );
+          },
+        ),
+        PopupMenuItem(
+          child: Text(t.pages.logs.shareAppLogs),
+          onTap: () async {
+            await UriUtils.tryShareOrLaunchFile(
+              Uri.parse(pathResolver.appFile().path),
+              fileOrDir: pathResolver.directory.uri,
+            );
+          },
+        ),
+      ],
+    ];
 
     return Scaffold(
       appBar: AppBar(
