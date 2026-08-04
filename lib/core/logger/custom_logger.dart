@@ -44,12 +44,31 @@ class ConsolePrinter extends LoggyPrinter {
 }
 
 class FileLogPrinter extends LoggyPrinter {
-  FileLogPrinter(String filePath, {this.minLevel = LogLevel.debug}) : _logFile = File(filePath);
+  FileLogPrinter(String filePath, {this.minLevel = LogLevel.debug}) : _logFile = File(filePath) {
+    _rotateIfBig();
+  }
+
+  static const _maxBytes = 2 * 1024 * 1024;
 
   final File _logFile;
   final LogLevel minLevel;
 
-  late final _sink = _logFile.openWrite(mode: FileMode.writeOnly);
+  // Дописуємо, а не перезаписуємо. В оригіналі стояв FileMode.writeOnly, тобто
+  // кожен запуск застосунку стирав попередній лог — а після падіння застосунок
+  // саме що перезапускається і знищував рівно ті рядки, які пояснюють причину.
+  late final _sink = _logFile.openWrite(mode: FileMode.writeOnlyAppend);
+
+  /// Дописування без межі колись зайняло б памʼять пристрою, тому завеликий
+  /// файл відкладаємо вбік — один попередній зріз лишається доступним.
+  void _rotateIfBig() {
+    try {
+      if (_logFile.existsSync() && _logFile.lengthSync() > _maxBytes) {
+        _logFile.renameSync('${_logFile.path}.1');
+      }
+    } catch (_) {
+      // Не вийшло — не критично: гірше лише те, що файл росте далі.
+    }
+  }
 
   @override
   void onLog(LogRecord record) {
@@ -61,6 +80,9 @@ class FileLogPrinter extends LoggyPrinter {
     if (record.stackTrace != null) {
       _sink.writeln(record.stackTrace);
     }
+    // Скидаємо на диск одразу. Інакше при падінні процесу останні рядки — саме
+    // ті, заради яких усе й затівалося, — лишаються в буфері й гинуть з ним.
+    _sink.flush().ignore();
   }
 
   void dispose() {

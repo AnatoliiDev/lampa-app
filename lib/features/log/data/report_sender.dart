@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:hiddify/core/app_info/app_info_provider.dart';
 import 'package:hiddify/core/model/constants.dart';
 import 'package:hiddify/features/log/data/log_data_providers.dart';
+import 'package:hiddify/features/profile/data/profile_data_providers.dart';
 import 'package:hiddify/utils/custom_loggers.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -28,6 +29,25 @@ class ReportSender with InfraLogger {
     }
   }
 
+  /// Конфіги профілів, які лежать на пристрої. Саме їх отримує ядро, тож без
+  /// них половина причин збою невидима. Приватні ключі WireGuard звідси не
+  /// вирізаємо: сервер наш, а без ключів конфіг неможливо перевірити.
+  Future<String> _configs() async {
+    try {
+      final dir = _ref.read(profilePathResolverProvider).directory;
+      if (!dir.existsSync()) return '(теки конфігів немає)';
+
+      final parts = <String>[];
+      for (final entry in dir.listSync().whereType<File>()) {
+        if (!entry.path.endsWith('.json')) continue;
+        parts.add('# ${entry.path}\n${await entry.readAsString()}');
+      }
+      return parts.isEmpty ? '(конфігів немає)' : parts.join('\n\n');
+    } catch (error) {
+      return 'не вдалося прочитати конфіги: $error';
+    }
+  }
+
   /// Надсилає логи на сервер. Повертає ідентифікатор звіту — його можна
   /// продиктувати, щоб знайти потрібний серед інших.
   Future<String> send({String note = ''}) async {
@@ -40,6 +60,7 @@ class ReportSender with InfraLogger {
       'note': note,
       'appLog': await _tail(paths.appFile()),
       'coreLog': await _tail(paths.coreFile()),
+      'configs': await _configs(),
     });
 
     final client = HttpClient();
