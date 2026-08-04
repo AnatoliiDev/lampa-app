@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:hiddify/core/utils/exception_handler.dart';
@@ -20,6 +22,25 @@ class LogRepositoryImpl with ExceptionHandler, InfraLogger implements LogReposit
   final HiddifyCoreService singbox;
   final LogPathResolver logPathResolver;
 
+  /// Понад цю межу лог відкладається вбік замість того, щоб рости далі.
+  static const _maxLogBytes = 2 * 1024 * 1024;
+
+  /// Раніше тут стояло `writeAsString("")` — обидва логи затиралися при кожному
+  /// запуску. Через це лог ядра завжди був порожній, а сесія, у якій щось
+  /// зламалося, не доживала до моменту, коли її можна надіслати: щоб відкрити
+  /// застосунок і натиснути «надіслати звіт», його треба запустити — а запуск
+  /// уже стер докази. Тепер файл лише відкладається вбік, коли завеликий.
+  Future<void> _prepare(File file) async {
+    if (!await file.exists()) {
+      await file.create(recursive: true);
+      return;
+    }
+    if (await file.length() > _maxLogBytes) {
+      await file.rename('${file.path}.1');
+      await file.create(recursive: true);
+    }
+  }
+
   @override
   TaskEither<LogFailure, Unit> init() {
     return exceptionHandler(() async {
@@ -27,16 +48,8 @@ class LogRepositoryImpl with ExceptionHandler, InfraLogger implements LogReposit
         if (!await logPathResolver.directory.exists()) {
           await logPathResolver.directory.create(recursive: true);
         }
-        if (await logPathResolver.coreFile().exists()) {
-          await logPathResolver.coreFile().writeAsString("");
-        } else {
-          await logPathResolver.coreFile().create(recursive: true);
-        }
-        if (await logPathResolver.appFile().exists()) {
-          await logPathResolver.appFile().writeAsString("");
-        } else {
-          await logPathResolver.appFile().create(recursive: true);
-        }
+        await _prepare(logPathResolver.coreFile());
+        await _prepare(logPathResolver.appFile());
       }
       return right(unit);
     }, LogUnexpectedFailure.new);

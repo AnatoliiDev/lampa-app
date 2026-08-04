@@ -116,11 +116,13 @@ android {
                 signingConfig signingConfigs.debug
             }
             ndk {
-                // x86_64 прибрано: це архітектура емуляторів, серед реальних
-                // телефонів її практично немає, а нативні бібліотеки ядра
-                // важать десятки мегабайт на кожну ABI.
-                //noinspection ChromeOsAbiSupport
-                abiFilters "armeabi-v7a", "arm64-v8a"
+                // abiFilters тут навмисно немає: перелік архітектур задає блок
+                // splits вище, а тримати обидва AGP забороняє — «Conflicting
+                // configuration ... cannot be present when splits abi filters
+                // are set». У CI це не спливало, бо fastforge задає перелік
+                // платформ сам, а при звичайному flutter build конфігурація
+                // навіть не доходила до компіляції.
+                //
                 // Символи потрібні для читабельних крешів у Play Console, куди
                 // ми не публікуємось. У релізі v0.0.1 вони дали APK на 341 МБ —
                 // непідйомно для роздачі кнопкою з сайту.
