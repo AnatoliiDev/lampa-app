@@ -7,24 +7,14 @@ part 'locale_preferences.g.dart';
 
 @Riverpod(keepAlive: true)
 class LocalePreferences extends _$LocalePreferences with AppLogger {
+  // Інтерфейс завжди російською — незалежно від локалі телефона й від того, що
+  // лишилося в shared_preferences від попередніх версій. Вибору мови в
+  // налаштуваннях немає, тож збережене значення читати нема сенсу: воно тільки
+  // створило б розбіжність між тим, що людина бачить, і тим, що вона може
+  // змінити. Коли з'явиться потреба в кількох мовах — сюди повертається читання
+  // ключа "locale", а в general_page — LocalePrefTile.
   @override
-  AppLocale build() {
-    final persisted = ref.watch(sharedPreferencesProvider).requireValue.getString("locale");
-    // Російська за замовчуванням, а не локаль пристрою: так усі бачать
-    // однаковий інтерфейс незалежно від налаштувань телефона. Мову можна
-    // змінити в налаштуваннях, і вибір запам'ятовується.
-    if (persisted == null) return AppLocale.ru;
-    // keep backward compatibility with chinese after changing zh to zh_CN
-    if (persisted == "zh") {
-      return AppLocale.zhCn;
-    }
-    try {
-      return AppLocale.values.byName(persisted);
-    } catch (e) {
-      loggy.error("error setting locale: [$persisted]", e);
-      return AppLocale.ru;
-    }
-  }
+  AppLocale build() => AppLocale.ru;
 
   Future<void> changeLocale(AppLocale value) async {
     state = value;

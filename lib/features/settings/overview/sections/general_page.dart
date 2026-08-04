@@ -23,9 +23,9 @@ class GeneralPage extends HookConsumerWidget {
       appBar: AppBar(title: Text(t.pages.settings.general.title)),
       body: ListView(
         children: [
-          const LocalePrefTile(),
+          // Вибору мови немає навмисно: інтерфейс завжди російською.
+          // Перемикача аналітики теж — її не збирають узагалі.
           const ThemeModePrefTile(),
-          const EnableAnalyticsPrefTile(),
           SwitchListTile.adaptive(
             title: Text(t.pages.settings.general.autoIpCheck),
             value: ref.watch(Preferences.autoCheckIp),

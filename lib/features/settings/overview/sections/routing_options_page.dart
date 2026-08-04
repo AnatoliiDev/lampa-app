@@ -3,12 +3,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hiddify/core/localization/translations.dart';
-import 'package:hiddify/core/model/region.dart';
 import 'package:hiddify/core/preferences/general_preferences.dart';
 import 'package:hiddify/core/router/bottom_sheets/bottom_sheets_notifier.dart';
-import 'package:hiddify/core/router/dialog/dialog_notifier.dart';
 import 'package:hiddify/features/per_app_proxy/model/per_app_proxy_mode.dart';
-import 'package:hiddify/features/per_app_proxy/overview/per_app_proxy_notifier.dart';
 import 'package:hiddify/features/route_rules/notifier/rules_notifier.dart';
 import 'package:hiddify/features/route_rules/widget/rule_tile.dart';
 import 'package:hiddify/features/settings/data/config_option_repository.dart';
@@ -176,35 +173,10 @@ class RoutingOptionsPage extends HookConsumerWidget {
             child: Column(
               children: [
                 Divider(height: 4, thickness: 4, color: theme.colorScheme.primaryContainer),
-                ChoicePreferenceWidget(
-                  selected: ref.watch(ConfigOptions.region),
-                  preferences: ref.watch(ConfigOptions.region.notifier),
-                  choices: Region.values,
-                  title: t.pages.settings.routing.generalOptions.region,
-                  showFlag: true,
-                  icon: Icons.place_rounded,
-                  presentChoice: (value) => value.present(t),
-                  onChanged: (val) async {
-                    await ref.read(ConfigOptions.directDnsAddress.notifier).reset();
-                    final autoRegion = ref.read(Preferences.autoAppsSelectionRegion);
-                    final mode = ref.read(Preferences.perAppProxyMode).toAppProxy();
-                    if (autoRegion != val &&
-                        autoRegion != null &&
-                        val != Region.other &&
-                        mode != null &&
-                        PlatformUtils.isAndroid) {
-                      await ref
-                          .read(dialogNotifierProvider.notifier)
-                          .showOk(
-                            t.pages.settings.routing.generalOptions.perAppProxy.autoSelection.dialog.title,
-                            t.pages.settings.routing.generalOptions.perAppProxy.autoSelection.dialog.msg(
-                              region: val.name,
-                            ),
-                          );
-                      await ref.read(PerAppProxyProvider(mode).notifier).clearAutoSelected();
-                    }
-                  },
-                ),
+                // Вибору регіону немає: він у Hiddify керує обхідними правилами
+                // для конкретних країн, а «Лампа» жене весь трафік у тунель.
+                // ConfigOptions.region лишається зі значенням за замовчуванням,
+                // бо на нього спираються правила маршрутизації в ядрі.
                 if (PlatformUtils.isAndroid)
                   ListTile(
                     title: Text(t.pages.settings.routing.generalOptions.perAppProxy.title),

@@ -1,9 +1,4 @@
-import 'package:flutter/foundation.dart';
-import 'package:hiddify/core/analytics/analytics_filter.dart';
-import 'package:hiddify/core/analytics/analytics_logger.dart';
-
 import 'package:hiddify/core/logger/logger_controller.dart';
-import 'package:hiddify/core/model/environment.dart';
 import 'package:hiddify/core/preferences/preferences_provider.dart';
 import 'package:hiddify/utils/custom_loggers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -14,60 +9,31 @@ part 'analytics_controller.g.dart';
 
 const String enableAnalyticsPrefKey = "enable_analytics";
 
-bool _testCrashReport = false;
-
 @Riverpod(keepAlive: true)
 class AnalyticsController extends _$AnalyticsController with AppLogger {
+  // «Лампа» не збирає аналітику взагалі. В оригіналі прапорець типово стояв у
+  // true, і кожен встановлений застосунок слав звіти та трасування у Sentry
+  // Hiddify — чужий проєкт, до якого ми не маємо стосунку. Повертаємо false
+  // безумовно, щоб SentryFlutter не ініціалізувався навіть у тих, у кого в
+  // shared_preferences лишилося старе значення.
   @override
   Future<bool> build() async {
-    return _preferences.getBool(enableAnalyticsPrefKey) ?? true;
+    return false;
   }
 
   SharedPreferences get _preferences => ref.read(sharedPreferencesProvider).requireValue;
 
-  Future<void> enableAnalytics() async {
-    if (state case AsyncData(value: final enabled)) {
-      loggy.debug("enabling analytics");
-      state = const AsyncLoading();
-      if (!enabled) {
-        await _preferences.setBool(enableAnalyticsPrefKey, true);
-      }
+  /// Навмисно порожній: вмикати збір нема куди. Метод лишається, бо на нього
+  /// посилається bootstrap і екран налаштувань в upstream.
+  Future<void> enableAnalytics() async {}
 
-      // final env = ref.read(environmentProvider);
-      // final appInfo = await ref.read(appInfoProvider.future);
-      final dsn = !kDebugMode || _testCrashReport ? Environment.sentryDSN : "";
-      final sentryLogger = SentryLoggyIntegration();
-      LoggerController.instance.addPrinter("analytics", sentryLogger);
-
-      await SentryFlutter.init((options) {
-        options.dsn = dsn;
-        // options.environment = env.name;
-        // options.dist = appInfo.release.name;
-        options.debug = kDebugMode;
-        options.enableNativeCrashHandling = true;
-        options.enableNdkScopeSync = true;
-        // options.autoAppStart = false;
-        // options.attachScreenshot = true;
-        options.serverName = "";
-        options.attachThreads = true;
-        options.tracesSampleRate = 0.20;
-        options.enableUserInteractionTracing = true;
-        options.addIntegration(sentryLogger);
-        options.beforeSend = sentryBeforeSend;
-      });
-
-      state = const AsyncData(true);
-    }
-  }
-
+  /// Прибирає прапорець, якщо він лишився від попередніх версій, і глушить
+  /// Sentry на випадок, якщо його встиг підняти якийсь інший шлях.
   Future<void> disableAnalytics() async {
-    if (state case AsyncData()) {
-      loggy.debug("disabling analytics");
-      state = const AsyncLoading();
-      await _preferences.setBool(enableAnalyticsPrefKey, false);
-      await Sentry.close();
-      LoggerController.instance.removePrinter("analytics");
-      state = const AsyncData(false);
-    }
+    loggy.debug("аналітика вимкнена назавжди");
+    await _preferences.remove(enableAnalyticsPrefKey);
+    await Sentry.close();
+    LoggerController.instance.removePrinter("analytics");
+    state = const AsyncData(false);
   }
 }

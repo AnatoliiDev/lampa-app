@@ -17,9 +17,12 @@ part 'general_preferences.g.dart';
 bool _debugIntroPage = false;
 
 abstract class Preferences {
+  // Одразу true: вітального екрана в «Лампі» немає. Він існував заради вибору
+  // мови, регіону та згоди на аналітику — усе це прибрано, а першим, що бачить
+  // людина, має бути поле коду запрошення.
   static final introCompleted = PreferencesNotifier.create(
     "intro_completed",
-    false,
+    true,
     overrideValue: _debugIntroPage && kDebugMode ? false : null,
   );
 
