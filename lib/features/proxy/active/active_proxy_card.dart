@@ -86,22 +86,14 @@ class ActiveProxyFooter extends ConsumerWidget with InfraLogger {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Row(
-                  children: [
-                    if (activeProxy.ipinfo.ip.isNotEmpty)
-                      IPText(ip: activeProxy.ipinfo.ip, onLongPress: handleUrlTest, constrained: true)
-                    else
-                      UnknownIPText(text: t.pages.proxies.unknownIp, onTap: handleUrlTest),
-                    const Spacer(),
-                    Text(
-                      // getRealOutboundTag(activeProxy),
-                      activeProxy.type,
-                      style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
+                // Тип каналу звідси прибрано: рядком вище вже написано
+                // «lowest → reality», а «Balancer» поруч з адресою нічого не
+                // додавав — лише відбирав місце, через яке адреса IPv6 вилазила
+                // за межі картки.
+                if (activeProxy.ipinfo.ip.isNotEmpty)
+                  IPText(ip: activeProxy.ipinfo.ip, onLongPress: handleUrlTest, constrained: true)
+                else
+                  UnknownIPText(text: t.pages.proxies.unknownIp, onTap: handleUrlTest),
               ],
             ),
           ),

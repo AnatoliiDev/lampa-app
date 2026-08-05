@@ -57,6 +57,9 @@ class BoxService(
         private const val TAG = "A/BoxService"
 
         private var initializeOnce = false
+
+        /** Чи вже налаштовано ядро в цьому процесі — див. пояснення у startService. */
+        private val setupDone = java.util.concurrent.atomic.AtomicBoolean(false)
         private lateinit var workingDir: File
         private fun initialize() {
             System.setProperty("GODEBUG", "efence=1,stacktraceback=2");
@@ -166,25 +169,38 @@ class BoxService(
             // за кілька секунд після підключення. Тут не питаємо Settings: у Kotlin
             // окремий ключ, і на момент старту служби він ще типовий.
             Libbox.setMemoryLimit(false)
-            val newService = try {
-                Mobile.setup(
-                    SetupOptions().also {
-                        it.basePath = Settings.baseDir
-                        it.workingDir = Settings.workingDir
-                        it.tempDir = Settings.tempDir
-                        it.fixAndroidStack = com.hiddify.hiddify.bg.Bugs.fixAndroidStack
-                        it.mode=4L//mode.toLong()
-                        it.listen= "127.0.0.1:${Settings.grpcServiceModePort}"
-                        it.secret=""
-                        it.debug = Settings.debugMode
-                    },platformInterface)
-
-
-//                Libbox.newService(content,platformInterface)
-
-            } catch (e: Exception) {
-                stopAndAlert(Alert.CreateService, e.message)
-                return
+            // Ядру віддаємо не себе, а незмінного посередника — інакше після
+            // перезапуску служби воно звертається до старого, уже прибраного
+            // посилання й валить процес. Пояснення — у StablePlatformInterface.
+            StablePlatformInterface.bind(platformInterface)
+            // Налаштовуємо ядро рівно один раз на процес. Повторний виклик і так
+            // нічого не робить — у hiddify-core (v2/hcore/grpc_server.go) `Setup`
+            // виходить одразу, щойно сервер для цього режиму вже піднято, — але
+            // сам виклик передає ядру Java-об'єкт ще раз, і після нього
+            // gomobile губить посилання на нього:
+            //     go/Seq: Unknown reference: 42 → SIGABRT
+            // Служба ж стартує повторно щоразу, коли користувач перепідключається
+            // або Android перезапускає її після падіння.
+            if (setupDone.compareAndSet(false, true)) {
+                try {
+                    Mobile.setup(
+                        SetupOptions().also {
+                            it.basePath = Settings.baseDir
+                            it.workingDir = Settings.workingDir
+                            it.tempDir = Settings.tempDir
+                            it.fixAndroidStack = com.hiddify.hiddify.bg.Bugs.fixAndroidStack
+                            it.mode=4L//mode.toLong()
+                            it.listen= "127.0.0.1:${Settings.grpcServiceModePort}"
+                            it.secret=""
+                            it.debug = Settings.debugMode
+                        },StablePlatformInterface)
+                } catch (e: Exception) {
+                    setupDone.set(false)
+                    stopAndAlert(Alert.CreateService, e.message)
+                    return
+                }
+            } else {
+                Log.d(TAG, "core already set up in this process")
             }
             status.postValue(Status.Started)
 
@@ -358,6 +374,9 @@ class BoxService(
     }
 
     fun onDestroy() {
+        // Відв'язуємо саме себе: якщо нова служба вже встигла стати на місце,
+        // її підміняти не можна.
+        StablePlatformInterface.unbind(platformInterface)
         binder.close()
     }
 

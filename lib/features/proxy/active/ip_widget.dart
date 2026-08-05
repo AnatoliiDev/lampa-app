@@ -45,24 +45,36 @@ class IPText extends HookConsumerWidget {
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 2),
-          child: AnimatedCrossFade(
-            firstChild: Text(ip, style: ipStyle, textDirection: TextDirection.ltr, overflow: TextOverflow.ellipsis),
-            secondChild: Padding(
-              padding: constrained ? EdgeInsets.zero : const EdgeInsetsDirectional.only(end: 48),
-              child: Text(
-                obscureIp(ip),
-                semanticsLabel: t.common.hidden,
-                style: ipStyle,
-                textDirection: TextDirection.ltr,
-                overflow: TextOverflow.ellipsis,
+          child: _fitIfConstrained(
+            AnimatedCrossFade(
+              firstChild: Text(ip, style: ipStyle, textDirection: TextDirection.ltr, overflow: TextOverflow.ellipsis),
+              secondChild: Padding(
+                padding: constrained ? EdgeInsets.zero : const EdgeInsetsDirectional.only(end: 48),
+                child: Text(
+                  obscureIp(ip),
+                  semanticsLabel: t.common.hidden,
+                  style: ipStyle,
+                  textDirection: TextDirection.ltr,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
+              crossFadeState: isVisible ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+              duration: const Duration(milliseconds: 200),
             ),
-            crossFadeState: isVisible ? CrossFadeState.showFirst : CrossFadeState.showSecond,
-            duration: const Duration(milliseconds: 200),
           ),
         ),
       ),
     );
+  }
+
+  /// У картці на головному місця рівно на один рядок, а адреса IPv6 удвічі
+  /// довша за IPv4 і не влазить. Обрізати її трьома крапками погано — адреса
+  /// потрібна цілком, щоб її можна було прочитати й звірити. Тому в тісному
+  /// вигляді зменшуємо кегль рівно настільки, щоб вміститися; для IPv4
+  /// нічого не змінюється, він і так влазить.
+  Widget _fitIfConstrained(Widget child) {
+    if (!constrained) return child;
+    return FittedBox(fit: BoxFit.scaleDown, alignment: AlignmentDirectional.centerStart, child: child);
   }
 }
 

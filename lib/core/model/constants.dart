@@ -13,13 +13,13 @@ abstract class Constants {
     defaultValue: 'https://19851984.xyz',
   );
 
-  static const repoUrl = "https://github.com/AnatoliiDev/vpn-tool-app";
+  static const repoUrl = "https://github.com/AnatoliiDev/lampa-app";
 
   static const githubUrl = repoUrl;
   static const licenseUrl = "$repoUrl?tab=License-1-ov-file#readme";
-  static const githubReleasesApiUrl = "https://api.github.com/repos/AnatoliiDev/vpn-tool-app/releases";
+  static const githubReleasesApiUrl = "https://api.github.com/repos/AnatoliiDev/lampa-app/releases";
   static const githubLatestReleaseUrl = "$repoUrl/releases/latest";
-  static const appCastUrl = "https://raw.githubusercontent.com/AnatoliiDev/vpn-tool-app/main/appcast.xml";
+  static const appCastUrl = "https://raw.githubusercontent.com/AnatoliiDev/lampa-app/main/appcast.xml";
   static const telegramChannelUrl = repoUrl;
   // Власних сторінок політик поки немає — умови описані в ліцензії форку.
   static const privacyPolicyUrl = "$repoUrl#readme";
