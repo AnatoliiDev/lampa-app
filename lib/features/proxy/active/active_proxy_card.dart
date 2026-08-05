@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hiddify/core/localization/translations.dart';
 import 'package:hiddify/core/router/dialog/dialog_notifier.dart';
 import 'package:hiddify/features/connection/model/connection_status.dart';
@@ -50,67 +49,65 @@ class ActiveProxyFooter extends ConsumerWidget with InfraLogger {
           BoxShadow(color: theme.colorScheme.secondary.withOpacity(.21), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
-      child: InkWell(
-        onTap: () {
-          context.goNamed('proxies');
-        },
-        child: Row(
-          children: [
-            InkWell(
-              onTap: () async {
-                await handleUrlTest();
-                await ref.read(dialogNotifierProvider.notifier).showProxyInfo(outboundInfo: activeProxy);
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: IPCountryFlag(
-                  countryCode: activeProxy.ipinfo.countryCode,
-                  organization: activeProxy.ipinfo.org,
-                  size: 48,
-                ),
+      // Раніше картка вела на екран вибору каналу. Тепер вибирати нема чого:
+      // застосунок сам ставить канал із меншою затримкою (див.
+      // preferLowestDelayProvider), а решта пунктів того екрана лише збивала з
+      // пантелику. Картка лишається показником: прапорець, адреса на виході,
+      // тип каналу.
+      child: Row(
+        children: [
+          InkWell(
+            onTap: () async {
+              await handleUrlTest();
+              await ref.read(dialogNotifierProvider.notifier).showProxyInfo(outboundInfo: activeProxy);
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: IPCountryFlag(
+                countryCode: activeProxy.ipinfo.countryCode,
+                organization: activeProxy.ipinfo.org,
+                size: 48,
               ),
             ),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Semantics(
-                    label: t.pages.proxies.activeProxy,
-                    child: Text(
+          ),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Semantics(
+                  label: t.pages.proxies.activeProxy,
+                  child: Text(
+                    // getRealOutboundTag(activeProxy),
+                    activeProxy.tagDisplay,
+                    style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    if (activeProxy.ipinfo.ip.isNotEmpty)
+                      IPText(ip: activeProxy.ipinfo.ip, onLongPress: handleUrlTest, constrained: true)
+                    else
+                      UnknownIPText(text: t.pages.proxies.unknownIp, onTap: handleUrlTest),
+                    const Spacer(),
+                    Text(
                       // getRealOutboundTag(activeProxy),
-                      activeProxy.tagDisplay,
-                      style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                      activeProxy.type,
+                      style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      if (activeProxy.ipinfo.ip.isNotEmpty)
-                        IPText(ip: activeProxy.ipinfo.ip, onLongPress: handleUrlTest, constrained: true)
-                      else
-                        UnknownIPText(text: t.pages.proxies.unknownIp, onTap: handleUrlTest),
-                      const Spacer(),
-                      Text(
-                        // getRealOutboundTag(activeProxy),
-                        activeProxy.type,
-                        style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
             ),
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Icon(Icons.arrow_forward_ios, color: Colors.blue),
-            ),
-          ],
-        ),
+          ),
+          // Стрілка «далі» пішла разом із переходом на екран вибору каналу.
+          const SizedBox(width: 16),
+        ],
       ),
     );
   }
