@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hiddify/core/preferences/preferences_provider.dart';
 import 'package:hiddify/features/connection/model/connection_status.dart';
@@ -40,10 +43,7 @@ Future<void> showSendReportDialog(BuildContext context, WidgetRef ref, {String h
       ),
       actions: [
         TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Отмена')),
-        FilledButton(
-          onPressed: () => Navigator.pop(dialogContext, controller.text),
-          child: const Text('Отправить'),
-        ),
+        FilledButton(onPressed: () => Navigator.pop(dialogContext, controller.text), child: const Text('Отправить')),
       ],
     ),
   );
@@ -53,9 +53,7 @@ Future<void> showSendReportDialog(BuildContext context, WidgetRef ref, {String h
   messenger.showSnackBar(const SnackBar(content: Text('Отправляем…')));
   try {
     final id = await ref.read(reportSenderProvider).send(note: note);
-    messenger.showSnackBar(
-      SnackBar(content: Text('Отчёт отправлен: $id'), duration: const Duration(seconds: 8)),
-    );
+    messenger.showSnackBar(SnackBar(content: Text('Отчёт отправлен: $id'), duration: const Duration(seconds: 8)));
   } catch (error) {
     messenger.showSnackBar(SnackBar(content: Text('Не удалось отправить: $error')));
   }
@@ -110,11 +108,25 @@ class ErrorReportBanner extends HookConsumerWidget {
     final failure = status is Disconnected ? status.connectionFailure : null;
     final crashedBefore = ref.watch(unexpectedExitNotifierProvider);
 
-    if (failure == null && !crashedBefore) return const SizedBox.shrink();
+    // Hiddify під час звичайного від'єднання на частку секунди виставляє стан
+    // помилки (у логах це «CONNECTION FAILURE: createService» рівно тоді, коли
+    // людина сама натиснула «Відключити»). Помилки насправді немає, а червоний
+    // напис устигав блимнути. Тому чекаємо, поки стан устоїться.
+    final failurePresent = failure != null;
+    final failureSettled = useState(false);
+    useEffect(() {
+      if (!failurePresent) {
+        failureSettled.value = false;
+        return null;
+      }
+      final timer = Timer(const Duration(seconds: 2), () => failureSettled.value = true);
+      return timer.cancel;
+    }, [failurePresent]);
 
-    final hint = failure != null
-        ? 'Не удалось подключиться'
-        : 'Приложение закрылось само во время работы';
+    final showFailure = failurePresent && failureSettled.value;
+    if (!showFailure && !crashedBefore) return const SizedBox.shrink();
+
+    final hint = showFailure ? 'Не удалось подключиться' : 'Приложение закрылось само во время работы';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -122,7 +134,7 @@ class ErrorReportBanner extends HookConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            failure != null ? 'Что-то пошло не так' : 'В прошлый раз приложение закрылось само',
+            showFailure ? 'Что-то пошло не так' : 'В прошлый раз приложение закрылось само',
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error),
           ),

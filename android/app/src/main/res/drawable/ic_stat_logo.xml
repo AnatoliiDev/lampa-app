@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Значок у шторці Android, поки з'єднання активне.
+  Значок у шторці Android, поки з'єднання активне: «VPN».
 
-  Літери намальовано лініями, а не суцільними фігурами: система перефарбовує
-  такий значок у білий і зменшує його до крихітного розміру, і лінії за таких
-  умов читаються краще за заливку. Рамки навколо навмисно немає — у шторці вона
-  з'їдає ті кілька пікселів, що лишаються на самі літери.
+  Місце під значок відводить сама система, збільшити його не можна — можна лише
+  розпорядитися ним розумніше. Пробували «VPN-L»: п'ять знаків на цю ширину не
+  лізуть, літери доводиться звужувати, просвіти всередині «P» і «N» затуляються,
+  і знак перетворюється на пляму. Тому знову три літери.
 
-  Це наш власний значок застосунку. Ключ VPN, який Android малює поруч
-  самотужки, системний — його замінити не можна.
+  Розкладка: полотно 24×24, поля по 1.2. Літери по 5.4 завширшки, проміжки по
+  2.7 — удвічі більші за попередні, саме цього бракувало. Висота 4.8…19.2,
+  товщина ліній 1.9: тонші зливаються, товщі затуляють просвіти.
+
+  Ключ VPN, який Android малює самотужки, системний; на One UI він у рядку
+  стану взагалі не показується, тож цей значок там єдиний.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
@@ -20,7 +24,7 @@
     <!-- V -->
     <path
         android:fillColor="#00000000"
-        android:pathData="M2.4,7 L5.1,17 L7.8,7"
+        android:pathData="M1.2,4.8 L3.9,19.2 L6.6,4.8"
         android:strokeColor="#FFFFFFFF"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
@@ -29,14 +33,14 @@
     <!-- P: стійка та чаша -->
     <path
         android:fillColor="#00000000"
-        android:pathData="M9.9,17 L9.9,7"
+        android:pathData="M9.3,19.2 L9.3,4.8"
         android:strokeColor="#FFFFFFFF"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:strokeWidth="1.9" />
     <path
         android:fillColor="#00000000"
-        android:pathData="M9.9,7 h2.3 a2.35,2.35 0 0 1 0,4.7 h-2.3"
+        android:pathData="M9.3,4.8 h2.6 a2.75,2.75 0 0 1 0,5.5 h-2.6"
         android:strokeColor="#FFFFFFFF"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
@@ -45,7 +49,7 @@
     <!-- N -->
     <path
         android:fillColor="#00000000"
-        android:pathData="M16.4,17 L16.4,7 L21.6,17 L21.6,7"
+        android:pathData="M17.4,19.2 L17.4,4.8 L22.8,19.2 L22.8,4.8"
         android:strokeColor="#FFFFFFFF"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
