@@ -31,8 +31,27 @@ import java.security.KeyStore
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
+/**
+ * Ловить будь-який виняток і повертає запасне значення.
+ *
+ * Ядро викликає частину методів PlatformInterface без можливості повернути
+ * помилку (ReadWIFIState, SystemCertificates, ClearDNSCache та інші). Виняток
+ * із такого методу нікуди не подінеться: gomobile лишає його висіти в потоці,
+ * після чого **будь-який** наступний виклик у Java повертає порожнечу, і
+ * процес гине з повідомленням «go/Seq: Unknown reference: 42», яке до
+ * справжньої причини не має стосунку.
+ */
+private inline fun <T> safely(name: String, fallback: T, block: () -> T): T =
+    try {
+        block()
+    } catch (e: Throwable) {
+        Log.e("A/PlatformInterface", "виняток у $name, віддаю запасне значення", e)
+        fallback
+    }
+
 interface PlatformInterfaceWrapper : PlatformInterface {
-    override fun usePlatformAutoDetectInterfaceControl(): Boolean = true
+    override fun usePlatformAutoDetectInterfaceControl(): Boolean =
+        safely("usePlatformAutoDetectInterfaceControl", true) { true }
 
     override fun autoDetectInterfaceControl(fd: Int) {
     }
@@ -41,7 +60,8 @@ interface PlatformInterfaceWrapper : PlatformInterface {
         error("invalid argument")
     }
 
-    override fun useProcFS(): Boolean =  Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
+    override fun useProcFS(): Boolean =
+        safely("useProcFS", false) { Build.VERSION.SDK_INT < Build.VERSION_CODES.Q }
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun findConnectionOwner(
@@ -140,31 +160,38 @@ interface PlatformInterfaceWrapper : PlatformInterface {
         return InterfaceArray(interfaces.iterator())
     }
 
-    override fun underNetworkExtension(): Boolean = false
+    override fun underNetworkExtension(): Boolean = safely("underNetworkExtension", false) { false }
 
-    override fun includeAllNetworks(): Boolean = false
+    override fun includeAllNetworks(): Boolean = safely("includeAllNetworks", false) { false }
 
     override fun clearDNSCache() {
     }
 
-    override fun readWIFIState(): WIFIState? {
+    // Методи без повернення помилки — найнебезпечніші: якщо звідси вилетить
+    // виняток, ядру нема куди його віддати, він лишається висіти в потоці, і
+    // аварійно завершується вже наступний, ні в чому не винний виклик — із
+    // оманливим «go/Seq: Unknown reference». Тому тут ловимо все.
+    override fun readWIFIState(): WIFIState? = safely("readWIFIState", null) {
         @Suppress("DEPRECATION")
         val wifiInfo =
-            Application.wifiManager.connectionInfo ?: return null
+            Application.wifiManager.connectionInfo ?: return@safely null
         var ssid = wifiInfo.ssid
         if (ssid == "<unknown ssid>") {
-            return WIFIState("", "")
+            return@safely WIFIState("", "")
         }
         if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
             ssid = ssid.substring(1, ssid.length - 1)
         }
-        return WIFIState(ssid, wifiInfo.bssid)
+        // bssid буває null без дозволу на місцезнаходження, а порожній рядок
+        // ядро сприймає спокійно.
+        WIFIState(ssid, wifiInfo.bssid ?: "")
     }
 
-    override fun localDNSTransport(): LocalDNSTransport? = LocalResolver
+    override fun localDNSTransport(): LocalDNSTransport? =
+        safely<LocalDNSTransport?>("localDNSTransport", null) { LocalResolver }
 
     @OptIn(ExperimentalEncodingApi::class)
-    override fun systemCertificates(): StringIterator {
+    override fun systemCertificates(): StringIterator = safely("systemCertificates", StringArray(emptyList<String>().iterator())) {
         val certificates = mutableListOf<String>()
         val keyStore = KeyStore.getInstance("AndroidCAStore")
         if (keyStore != null) {
@@ -177,7 +204,7 @@ interface PlatformInterfaceWrapper : PlatformInterface {
                 )
             }
         }
-        return StringArray(certificates.iterator())
+        StringArray(certificates.iterator())
     }
 
     private class InterfaceArray(private val iterator: Iterator<LibboxNetworkInterface>) : NetworkInterfaceIterator {

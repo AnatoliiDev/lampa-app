@@ -1,8 +1,10 @@
 package com.hiddify.hiddify.bg
 
+import android.util.Log
 import com.hiddify.core.libbox.Notification
 import com.hiddify.core.libbox.PlatformInterface
 import com.hiddify.core.libbox.TunOptions
+import go.Seq
 
 /**
  * Незмінний об'єкт, який ядро бачить як свій PlatformInterface, і який лише
@@ -34,6 +36,34 @@ import com.hiddify.core.libbox.TunOptions
 object StablePlatformInterface : PlatformInterfaceWrapper {
     @Volatile
     private var delegate: PlatformInterface? = null
+
+    private val pinned = java.util.concurrent.atomic.AtomicBoolean(false)
+
+    /**
+     * Додає в таблицю посилань gomobile одну одиницю, яку ніхто ніколи не зніме.
+     *
+     * Кожен виклик із ядра в Java працює за схемою «збільшити лічильник — узяти
+     * об'єкт — зменшити лічильник» (див. go_seq_from_refnum у seq_android.c).
+     * Десь у цій парі лічильник розходиться: він доходить до нуля, запис із
+     * таблиці зникає, і наступний виклик валить процес сигналом SIGABRT —
+     * «go/Seq: Unknown reference: 42». Це перегони, а не проста помилка: варто
+     * було додати в ядро докладне журналювання, яке сповільнює ці виклики, і
+     * падіння зникало.
+     *
+     * Шукати того, хто віднімає зайве, всередині готового .aar можна довго.
+     * Натомість тримаємо власну одиницю: сума ніколи не дійде до нуля, запис
+     * живе, доки живе процес. Ціна — один об'єкт, який не звільниться, і він
+     * однаково потрібен весь час роботи застосунку.
+     *
+     * `Seq.decRef` доступний лише всередині пакета `go`, тож зняти цю одиницю
+     * ззовні неможливо навіть випадково.
+     */
+    fun pinForever() {
+        if (pinned.compareAndSet(false, true)) {
+            val refnum = Seq.incRef(this)
+            Log.d("A/StablePlatform", "закріплено в таблиці посилань: $refnum")
+        }
+    }
 
     fun bind(target: PlatformInterface) {
         delegate = target

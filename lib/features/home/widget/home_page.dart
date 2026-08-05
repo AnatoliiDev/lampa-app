@@ -6,9 +6,36 @@ import 'package:hiddify/core/localization/translations.dart';
 import 'package:hiddify/features/home/widget/connection_button.dart';
 import 'package:hiddify/features/proxy/active/active_proxy_card.dart';
 import 'package:hiddify/features/proxy/active/active_proxy_delay_indicator.dart';
-import 'package:hiddify/gen/assets.gen.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:sliver_tools/sliver_tools.dart';
+
+/// Знак у заголовку: слово «VPN» великими літерами в рамці кольору акценту.
+class _WordMark extends StatelessWidget {
+  const _WordMark();
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.primary;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        border: Border.all(color: color, width: 1.6),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        "VPN",
+        style: TextStyle(
+          color: color,
+          fontSize: 13,
+          fontWeight: FontWeight.w800,
+          // Розрядка: три великі літери без неї злипаються в пляму.
+          letterSpacing: 1.2,
+          height: 1.1,
+        ),
+      ),
+    );
+  }
+}
 
 class HomePage extends HookConsumerWidget {
   const HomePage({super.key});
@@ -28,7 +55,11 @@ class HomePage extends HookConsumerWidget {
         //     : null,
         title: Row(
           children: [
-            Assets.images.logo.svg(height: 24),
+            // Замість малюнка — слово. Лампочка в 24 пікселі перетворювалася на
+            // синю пляму й до того ж перегукувалася зі знаком Hiddify, від чого
+            // ліцензія просить триматися подалі. Напис читається за будь-якого
+            // розміру й не потребує жодного файлу.
+            const _WordMark(),
             const Gap(8),
             Text.rich(
               TextSpan(

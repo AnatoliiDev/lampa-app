@@ -17,6 +17,15 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <!-- Ядро періодично питає стан Wi-Fi (ReadWIFIState). Без цього дозволу
+         системна служба кидає SecurityException, а віддати його ядру нема куди:
+         цей метод не вміє повертати помилку. Виняток лишався висіти в потоці, і
+         аварійно завершувався вже наступний, ні в чому не винний виклик — з
+         оманливим «go/Seq: Unknown reference: 42». Саме через це застосунок
+         падав за кілька секунд після підключення. Дозвіл звичайний, у
+         користувача нічого не питає. Захист у PlatformInterfaceWrapper
+         лишається другим рубежем. -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.CAMERA" />
 
