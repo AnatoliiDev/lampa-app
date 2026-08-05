@@ -265,14 +265,16 @@ gen_translations: #generating missing translations using google translate
 
 android-release: android-apk-release android-aab-release
 
+# Без fastforge: він кличе `flutter build apk` без --split-per-abi, а тоді
+# інструмент шукає універсальний app-release.apk, якого ми навмисно не збираємо,
+# і падає вже після успішного gradle. Прямий виклик робить рівно те саме, що й
+# локальна збірка, тож CI і машина розробника більше не розходяться.
 android-apk-release:
-	fastforge package \
-	  --platform android \
-	  --targets apk \
-	  --skip-clean \
-	  --build-target=$(TARGET) \
-	  --build-target-platform=android-arm,android-arm64 \
-	  --build-dart-define=sentry_dsn=$(SENTRY_DSN)
+	flutter build apk --release \
+	  --split-per-abi \
+	  --target=$(TARGET) \
+	  --target-platform=android-arm,android-arm64 \
+	  --dart-define=sentry_dsn=$(SENTRY_DSN)
 	ls -R build/app/outputs
 
 android-aab-release:

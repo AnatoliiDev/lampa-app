@@ -81,18 +81,9 @@ android {
         multiDexEnabled true
     }
 
-    // Перелік ABI приходить із двох джерел, і вони конфліктують:
-    //   * локально `flutter build apk --split-per-abi` передає -Psplit-per-abi
-    //     і сам звужує abiFilters до потрібних архітектур;
-    //   * CI збирає через fastforge, де прапорця немає, і Flutter лишає типові
-    //     три ABI — тому там перелік доводиться звужувати вручну.
-    // AGP не пускає abiFilters разом із увімкненим splits, тож вмикаємо рівно
-    // одне з двох залежно від того, як нас запустили.
-    def flutterSplitsAbi = project.hasProperty('split-per-abi')
-
     splits {
         abi {
-            enable !flutterSplitsAbi
+            enable true
             reset()
             // Саме цей список, а не abiFilters нижче, керує тим, які APK
             // виробляє gradle. x86_64 прибрано: це архітектура емуляторів.
@@ -105,6 +96,15 @@ android {
             universalApk false
         }
     }
+
+    // Плагін Flutter, коли збірку запущено без --split-per-abi, ще на етапі
+    // apply вписує три типові ABI у ndk.abiFilters *кожного* buildType — і
+    // робить це, не зважаючи на --target-platform (див. FlutterPlugin.kt).
+    // AGP забороняє тримати abiFilters разом з увімкненим splits і перевіряє
+    // всі варіанти, тому досить було чужого списку в debug, щоб упала збірка
+    // release. Переліком архітектур керує splits вище — тут прибираємо чуже
+    // для всіх типів збірки. Наш блок виконується пізніше за плагін.
+    buildTypes.all { ndk { abiFilters.clear() } }
 
     if (hasKeyStore) {
         signingConfigs {
@@ -125,14 +125,7 @@ android {
                 signingConfig signingConfigs.debug
             }
             ndk {
-                // Лише коли splits вимкнено — див. пояснення вище.
-                // x86_64 прибрано: це архітектура емуляторів, серед реальних
-                // телефонів її практично немає, а нативні бібліотеки ядра
-                // важать десятки мегабайт на кожну ABI.
-                if (!flutterSplitsAbi) {
-                    //noinspection ChromeOsAbiSupport
-                    abiFilters "armeabi-v7a", "arm64-v8a"
-                }
+                // abiFilters тут навмисно немає — див. buildTypes.all вище.
                 // Символи потрібні для читабельних крешів у Play Console, куди
                 // ми не публікуємось. У релізі v0.0.1 вони дали APK на 341 МБ —
                 // непідйомно для роздачі кнопкою з сайту.
