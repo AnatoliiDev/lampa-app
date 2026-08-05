@@ -160,7 +160,12 @@ class BoxService(
             }
 
             DefaultNetworkMonitor.start()
-            Libbox.setMemoryLimit(!Settings.disableMemoryLimit)
+            // Завжди без обмеження: з ним ядро вмикає в Go майже безперервне
+            // прибирання сміття, і воно знищує посилання на цей самий об'єкт
+            // PlatformInterface, поки ядро ним ще користується — застосунок падає
+            // за кілька секунд після підключення. Тут не питаємо Settings: у Kotlin
+            // окремий ключ, і на момент старту служби він ще типовий.
+            Libbox.setMemoryLimit(false)
             val newService = try {
                 Mobile.setup(
                     SetupOptions().also {

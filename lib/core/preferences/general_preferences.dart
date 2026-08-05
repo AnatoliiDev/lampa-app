@@ -9,7 +9,6 @@ import 'package:hiddify/core/preferences/preferences_provider.dart';
 import 'package:hiddify/core/utils/preferences_utils.dart';
 import 'package:hiddify/features/per_app_proxy/model/per_app_proxy_mode.dart';
 import 'package:hiddify/features/window/notifier/window_notifier.dart';
-import 'package:hiddify/utils/platform_utils.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'general_preferences.g.dart';
@@ -86,8 +85,18 @@ abstract class Preferences {
 
   static final disableMemoryLimit = PreferencesNotifier.create<bool, bool>(
     "disable_memory_limit",
-    // disable memory limit on desktop by default
-    PlatformUtils.isDesktop,
+    // Апстрім вимикає обмеження лише на десктопі. Ми вимикаємо його всюди:
+    // увімкнене обмеження змушує ядро виставити Go `SetGCPercent(10)`, тобто
+    // прибирати сміття майже безперервно. На Android це валило застосунок через
+    // 4–5 секунд після підключення — збирач знищував посилання на об'єкт
+    // PlatformInterface, поки ядро ним ще користувалося:
+    //     go/Seq: Unknown reference: 42
+    //     Fatal signal 6 (SIGABRT) … go_seq_from_refnum
+    // Місце падіння щоразу інше (FindConnectionOwner, GetInterfaces) — валиться
+    // перший-ліпший виклик із ядра в Java після прибирання. Це вада мосту
+    // Go↔Java всередині hiddify-core, який підключено готовим .aar.
+    // Ціна — ядро тримає більше пам'яті (межа була 45 МБ).
+    true,
   );
 
   static final perAppProxyMode = PreferencesNotifier.create<PerAppProxyMode, String>(
