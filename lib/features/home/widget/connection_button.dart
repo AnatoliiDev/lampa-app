@@ -223,38 +223,51 @@ class _ConnectionButton extends StatelessWidget {
           button: true,
           enabled: enabled,
           label: label,
-          child: Container(
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [BoxShadow(blurRadius: 16, color: buttonColor.withValues(alpha: .5))],
-            ),
-            width: 148,
-            height: 148,
-            child: Material(
-              key: const ValueKey("home_connection_button"),
-              shape: const CircleBorder(),
-              color: Colors.white,
-              child: InkWell(
-                focusColor: Colors.grey,
-                onTap: onTap,
-                child: Padding(
-                  padding: const EdgeInsets.all(36),
-                  child: TweenAnimationBuilder(
-                    tween: ColorTween(end: buttonColor),
-                    duration: const Duration(milliseconds: 250),
-                    builder: (context, value, child) {
-                      if (useImage) {
-                        return image.image();
-                      } else {
-                        return Assets.images.logo.svg(colorFilter: ColorFilter.mode(value!, BlendMode.srcIn));
-                      }
-                    },
-                  ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Кільце навколо кнопки, поки йде перемикання: показує, що
+              // застосунок зайнятий, і пояснює, чому кнопка не відповідає.
+              if (!enabled)
+                SizedBox(width: 160, height: 160, child: CircularProgressIndicator(strokeWidth: 3, color: buttonColor)),
+              Container(
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [BoxShadow(blurRadius: 16, color: buttonColor.withValues(alpha: .5))],
                 ),
-              ),
-            ).animate(target: enabled ? 0 : 1).blurXY(end: 1),
-          ).animate(target: enabled ? 0 : 1).scaleXY(end: .88, curve: Curves.easeIn),
+                width: 148,
+                height: 148,
+                child: Material(
+                  key: const ValueKey("home_connection_button"),
+                  shape: const CircleBorder(),
+                  color: Colors.white,
+                  child: InkWell(
+                    focusColor: Colors.grey,
+                    // Поки триває під'єднання чи від'єднання, натискання не
+                    // приймаємо взагалі: раніше InkWell ловив дотик і давав хвилю
+                    // на весь екран, хоча дія була порожня — людина бачила відгук і
+                    // тиснула ще раз.
+                    onTap: enabled ? onTap : null,
+                    child: Padding(
+                      padding: const EdgeInsets.all(36),
+                      child: TweenAnimationBuilder(
+                        tween: ColorTween(end: buttonColor),
+                        duration: const Duration(milliseconds: 250),
+                        builder: (context, value, child) {
+                          if (useImage) {
+                            return image.image();
+                          } else {
+                            return Assets.images.logo.svg(colorFilter: ColorFilter.mode(value!, BlendMode.srcIn));
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ).animate(target: enabled ? 0 : 1).blurXY(end: 1),
+              ).animate(target: enabled ? 0 : 1).scaleXY(end: .88, curve: Curves.easeIn),
+            ],
+          ),
         ),
         const Gap(16),
         ExcludeSemantics(

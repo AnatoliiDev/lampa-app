@@ -4,7 +4,9 @@ import 'package:gap/gap.dart';
 import 'package:hiddify/core/app_info/app_info_provider.dart';
 import 'package:hiddify/core/localization/translations.dart';
 import 'package:hiddify/features/home/widget/connection_button.dart';
+import 'package:hiddify/features/home/widget/server_unreachable_banner.dart';
 import 'package:hiddify/features/proxy/active/active_proxy_card.dart';
+import 'package:hiddify/features/log/widget/error_report.dart';
 import 'package:hiddify/features/proxy/active/active_proxy_delay_indicator.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:sliver_tools/sliver_tools.dart';
@@ -115,7 +117,16 @@ class HomePage extends HookConsumerWidget {
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [ConnectionButton(), ActiveProxyDelayIndicator()],
+                                  children: [
+                                    ConnectionButton(),
+                                    ActiveProxyDelayIndicator(),
+                                    Gap(16),
+                                    ServerUnreachableBanner(),
+                                    // Кнопка звіту саме тут, а не в налаштуваннях:
+                                    // коли щось зламалося, людина найменше
+                                    // схильна шукати приховані пункти меню.
+                                    ErrorReportBanner(),
+                                  ],
                                 ),
                               ),
                               ActiveProxyFooter(),
