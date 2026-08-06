@@ -17,6 +17,7 @@ import 'package:hiddify/features/app_update/notifier/app_update_notifier.dart';
 import 'package:hiddify/features/connection/widget/connection_wrapper.dart';
 import 'package:hiddify/features/per_app_proxy/overview/per_app_proxy_service_notifier.dart';
 import 'package:hiddify/features/profile/notifier/profiles_update_notifier.dart';
+import 'package:hiddify/features/home/widget/revoked_access_banner.dart';
 import 'package:hiddify/features/proxy/active/prefer_lowest_delay.dart';
 import 'package:hiddify/features/shortcut/shortcut_wrapper.dart';
 import 'package:hiddify/features/system_tray/notifier/system_tray_notifier.dart';
@@ -67,6 +68,8 @@ class App extends HookConsumerWidget with WidgetsBindingObserver, PresLogger {
     // Після кожного підключення ставимо канал із меншою затримкою замість
     // почергового, який ядро нав'язує типовим — див. preferLowestDelayProvider.
     ref.listen(preferLowestDelayProvider, (_, _) {});
+    // Служба перевіряє доступ у фоні, але адресу підписки знає лише Dart.
+    ref.listen(subscriptionUrlSyncProvider, (_, _) {});
     if (PlatformUtils.isAndroid) ref.listen(perAppProxyServiceProvider, (_, _) {});
     if (PlatformUtils.isDesktop) ref.listen(systemTrayNotifierProvider, (_, _) {});
 

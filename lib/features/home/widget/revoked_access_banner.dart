@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:gap/gap.dart';
+import 'package:hiddify/core/preferences/preferences_provider.dart';
 import 'package:hiddify/features/connection/model/connection_status.dart';
 import 'package:hiddify/features/connection/notifier/connection_notifier.dart';
 import 'package:hiddify/features/profile/data/profile_data_providers.dart';
@@ -55,6 +56,25 @@ Future<AccessState> accessState(Ref ref) async {
     return AccessState.ok;
   } finally {
     client.close(force: true);
+  }
+}
+
+/// Кладе адресу підписки туди, звідки її бачить фонова служба.
+///
+/// Сама служба Dart-коду не має: вона читає налаштування, які пише Flutter.
+/// Без цього перевірка доступу жила б лише в інтерфейсі, а найважливіший
+/// випадок — застосунок згорнутий, людина дивиться відео — лишався б непокритим.
+@Riverpod(keepAlive: true)
+class SubscriptionUrlSync extends _$SubscriptionUrlSync {
+  static const _key = 'subscription_url';
+
+  @override
+  void build() {
+    final prefs = ref.watch(sharedPreferencesProvider).requireValue;
+    ref.listen(activeProfileProvider, (_, next) {
+      final profile = next.valueOrNull;
+      prefs.setString(_key, profile is RemoteProfileEntity ? profile.url : '');
+    }, fireImmediately: true);
   }
 }
 

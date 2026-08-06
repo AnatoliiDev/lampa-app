@@ -47,6 +47,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
 
 class BoxService(
         private val service: Service,
@@ -55,6 +59,9 @@ class BoxService(
 
     companion object {
         private const val TAG = "A/BoxService"
+
+        /** Як часто служба питає сервер, чи доступ ще чинний. */
+        private const val ACCESS_CHECK_MS = 60_000L
 
         private var initializeOnce = false
         private lateinit var workingDir: File
@@ -205,6 +212,7 @@ class BoxService(
                 notification.show(activeProfileName, R.string.status_started)
             }
             notification.start()
+            startAccessWatch()
         } catch (e: Exception) {
             stopAndAlert(Alert.StartService, e.message)
             return
@@ -266,7 +274,53 @@ class BoxService(
         }
     }
 
+    /**
+     * Стежить, чи не забрали доступ, поки застосунок згорнутий.
+     *
+     * Перевірка в інтерфейсі не рятує: людина дивиться відео, доступ забирають,
+     * тунель лишається живим — і телефон сидить без інтернету, доки вона не
+     * здогадається відкрити застосунок. Служба ж працює завжди, поки є тунель.
+     *
+     * Запит іде повз тунель: власний пакет виключено з маршрутизації (див.
+     * addExcludePackage у VPNService), тож відповідь дійде навіть тоді, коли
+     * тунель уже нічого не пропускає.
+     */
+    private var accessWatch: Job? = null
+
+    private fun startAccessWatch() {
+        accessWatch?.cancel()
+        accessWatch = GlobalScope.launch(Dispatchers.IO) {
+            while (isActive) {
+                delay(ACCESS_CHECK_MS)
+                val url = Settings.subscriptionUrl
+                if (url.isBlank()) continue
+                val code = runCatching {
+                    val connection = URL(url).openConnection() as HttpURLConnection
+                    try {
+                        connection.connectTimeout = 8_000
+                        connection.readTimeout = 8_000
+                        connection.requestMethod = "GET"
+                        connection.responseCode
+                    } finally {
+                        connection.disconnect()
+                    }
+                }.getOrNull() ?: continue
+
+                // 403 — доступ призупинено, 404 — підписки більше немає. І там,
+                // і там тунель уже марний: тримати його означає лишити людину
+                // без інтернету.
+                if (code == 403 || code == 404) {
+                    Log.w(TAG, "доступ відкликано (HTTP $code), зупиняємо тунель")
+                    withContext(Dispatchers.Main) { stopService() }
+                    break
+                }
+            }
+        }
+    }
+
     private fun stopService() {
+        accessWatch?.cancel()
+        accessWatch = null
         if (status.value == Status.Stopped) return
         status.value = Status.Stopping
         if (receiverRegistered) {

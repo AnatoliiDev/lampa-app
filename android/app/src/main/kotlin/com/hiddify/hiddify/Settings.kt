@@ -59,6 +59,10 @@ object Settings {
         get() = preferences.getString(SettingsKey.ACTIVE_PROFILE_NAME, "")!!
         set(value) = preferences.edit().putString(SettingsKey.ACTIVE_PROFILE_NAME, value).apply()
 
+    var subscriptionUrl: String
+        get() = preferences.getString(SettingsKey.SUBSCRIPTION_URL, "")!!
+        set(value) = preferences.edit().putString(SettingsKey.SUBSCRIPTION_URL, value).apply()
+
     var serviceMode: String
         get() = preferences.getString(SettingsKey.SERVICE_MODE, ServiceMode.VPN)!!
         set(value) = preferences.edit().putString(SettingsKey.SERVICE_MODE, value).apply()
