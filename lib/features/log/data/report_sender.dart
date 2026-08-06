@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dartx/dartx.dart';
 import 'package:hiddify/core/app_info/app_info_provider.dart';
 import 'package:hiddify/core/model/constants.dart';
 import 'package:hiddify/features/log/data/log_data_providers.dart';
 import 'package:hiddify/features/profile/data/profile_data_providers.dart';
+import 'package:hiddify/features/profile/model/profile_entity.dart';
+import 'package:hiddify/features/profile/notifier/active_profile_notifier.dart';
 import 'package:hiddify/utils/custom_loggers.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -54,10 +57,20 @@ class ReportSender with InfraLogger {
     final paths = _ref.read(logPathResolverProvider);
     final info = await _ref.read(appInfoProvider.future);
 
+    // Токен підписки — єдине, чим застосунок може себе назвати. Без нього звіт
+    // анонімний: у списку помилок не видно, у кого саме це сталося, і спитати
+    // нема в кого. Сам токен нікуди більше не потрапляє: сервер міняє його на
+    // ім'я користувача й у файл записує вже ім'я.
+    // Профіль буває й локальним, без адреси — тоді назватися нема чим.
+    final profile = await _ref.read(activeProfileProvider.future);
+    final url = profile is RemoteProfileEntity ? profile.url : '';
+    final token = Uri.tryParse(url)?.pathSegments.lastOrNull ?? '';
+
     final payload = jsonEncode({
       'version': '${info.presentVersion} (${info.release.name})',
       'platform': '${Platform.operatingSystem} ${Platform.operatingSystemVersion}',
       'note': note,
+      'token': token,
       'appLog': await _tail(paths.appFile()),
       'coreLog': await _tail(paths.coreFile()),
       'configs': await _configs(),
