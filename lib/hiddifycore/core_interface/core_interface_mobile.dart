@@ -154,7 +154,13 @@ class CoreInterfaceMobile extends CoreInterface with InfraLogger {
     }
     loggy.info("Waiting for starting core finished");
 
-    if (!await waitUntilPort(portBack, true, null, maxTry: 10)) {
+    // Чекаємо, поки фонове ядро відкриє свій порт. Десяти спроб (від двох до
+    // п'яти секунд) вистачало лише тому, що ядро вже сиділо в пам'яті. Одразу
+    // після встановлення воно піднімається з нуля й не встигає — і перше, що
+    // бачить нова людина після введення коду, це помилка «starting background
+    // core». Чекання уривається щойно порт відповість, тож довший запас нікого
+    // не сповільнює: він потрібен лише повільному першому старту.
+    if (!await waitUntilPort(portBack, true, null, maxTry: 40)) {
       await stopMethodChannel();
       return const CoreStatus.stopped(alert: CoreAlert.startService, message: "starting background core...");
     }
@@ -164,7 +170,9 @@ class CoreInterfaceMobile extends CoreInterface with InfraLogger {
   @override
   Future<bool> stop() async {
     await stopMethodChannel();
-    if (!await waitUntilPort(portBack, false, null, maxTry: 10)) {
+    // Так само й у зворотний бік: старе ядро може віддавати порт довше, ніж за
+    // дві секунди, і тоді підключення зривалося ще до початку.
+    if (!await waitUntilPort(portBack, false, null, maxTry: 40)) {
       return false;
     }
 

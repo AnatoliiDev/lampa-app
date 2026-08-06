@@ -14,6 +14,8 @@ import 'package:hiddify/core/router/go_router/helper/active_breakpoint_notifier.
 import 'package:hiddify/core/theme/app_theme.dart';
 import 'package:hiddify/core/theme/theme_preferences.dart';
 import 'package:hiddify/features/app_update/notifier/app_update_notifier.dart';
+import 'package:hiddify/features/connection/model/connection_status.dart';
+import 'package:hiddify/features/connection/notifier/connection_notifier.dart';
 import 'package:hiddify/features/connection/widget/connection_wrapper.dart';
 import 'package:hiddify/features/per_app_proxy/overview/per_app_proxy_service_notifier.dart';
 import 'package:hiddify/features/profile/notifier/profiles_update_notifier.dart';
@@ -47,7 +49,19 @@ class App extends HookConsumerWidget with WidgetsBindingObserver, PresLogger {
 
   void onResume(WidgetRef ref) {
     // if (PlatformUtils.isDesktop) return;
-    ref.read(hiddifyCoreServiceProvider).init();
+
+    // Ядро піднімаємо заново лише тоді, коли підключення не в процесі.
+    //
+    // Перше підключення на новому пристрої йде так: Android показує своє вікно
+    // згоди на VPN, застосунок при цьому згортається, а після «ОК» —
+    // повертається. Повернення тягло за собою перезапуск ядра просто посеред
+    // підключення: потік, що чекав на стан, лишався з мертвим каналом і чесно
+    // чекав у порожнечу, а людина за півхвилини бачила «startService». Саме це
+    // й ловив кожен, хто ставив застосунок уперше.
+    final status = ref.read(connectionNotifierProvider).valueOrNull;
+    if (status is! Connecting && status is! Disconnecting) {
+      ref.read(hiddifyCoreServiceProvider).init();
+    }
     // Поки застосунок був згорнутий, доступ могли забрати — і служба вже
     // вимкнула тунель. Без цього рядка людина повертається й бачить звичайну
     // кнопку «Подключить», ніби нічого не сталося.
