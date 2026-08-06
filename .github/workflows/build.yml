@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: subosito/flutter-action@v2.23.0 # у v2.22 всередині оновили actions/cache до v5 — це знімало попередження про Node 20
+      - uses: subosito/flutter-action@v2.22.0 # саме тут усередині оновили actions/cache до v5; у v2.23 ламається пошук версії 3.38.5 — вона вважає канал dev
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
@@ -138,7 +138,7 @@ jobs:
       #     flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@v2.23.0 # у v2.22 всередині оновили actions/cache до v5 — це знімало попередження про Node 20
+        uses: subosito/flutter-action@v2.22.0 # саме тут усередині оновили actions/cache до v5; у v2.23 ламається пошук версії 3.38.5 — вона вважає канал dev
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           # flutter-version-file: pubspec.yaml
