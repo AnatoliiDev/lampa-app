@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Значок сповіщення «сервер не відповідає».
+
+  Навмисно не «VPN»: службове сповіщення вже показує ці літери, і два однакові
+  значки поряд читалися як «VPN VPN» — незрозуміло, що з них що. Знак оклику
+  впізнається миттєво й на будь-якому розмірі.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#FFFFFFFF">
+
+    <!-- Трикутник -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M12,3.2 L22.4,20.8 L1.6,20.8 Z"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2" />
+
+    <!-- Стійка знака оклику -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M12,10 L12,15"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeWidth="2.2" />
+
+    <!-- Крапка -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M12,18.1 L12,18.1"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeWidth="2.4" />
+</vector>

@@ -17,6 +17,7 @@ import 'package:hiddify/features/app_update/notifier/app_update_notifier.dart';
 import 'package:hiddify/features/connection/widget/connection_wrapper.dart';
 import 'package:hiddify/features/per_app_proxy/overview/per_app_proxy_service_notifier.dart';
 import 'package:hiddify/features/profile/notifier/profiles_update_notifier.dart';
+import 'package:hiddify/features/home/widget/overlay_permission_card.dart';
 import 'package:hiddify/features/home/widget/revoked_access_banner.dart';
 import 'package:hiddify/features/proxy/active/prefer_lowest_delay.dart';
 import 'package:hiddify/features/shortcut/shortcut_wrapper.dart';
@@ -47,6 +48,14 @@ class App extends HookConsumerWidget with WidgetsBindingObserver, PresLogger {
   void onResume(WidgetRef ref) {
     // if (PlatformUtils.isDesktop) return;
     ref.read(hiddifyCoreServiceProvider).init();
+    // Поки застосунок був згорнутий, доступ могли забрати — і служба вже
+    // вимкнула тунель. Без цього рядка людина повертається й бачить звичайну
+    // кнопку «Подключить», ніби нічого не сталося.
+    ref.invalidate(accessStateProvider);
+    // Людина щойно могла ввімкнути дозвіл на вікна поверх інших застосунків —
+    // вона поверталася саме з того екрана. Без перепитування картка з проханням
+    // висіла б далі, ніби нічого не сталося.
+    ref.invalidate(canDrawOverlaysProvider);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (isOnPauseCalled && PlatformUtils.isAndroid) ref.invalidate(perAppProxyServiceProvider);

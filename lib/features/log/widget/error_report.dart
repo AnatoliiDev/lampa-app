@@ -73,7 +73,13 @@ class UnexpectedExitNotifier extends _$UnexpectedExitNotifier with AppLogger {
   bool build() {
     final prefs = ref.watch(sharedPreferencesProvider).requireValue;
     final crashed = prefs.getBool(_crashFlagKey) ?? false;
-    if (crashed) loggy.warning("попередній запуск обірвався несподівано");
+    if (crashed) {
+      loggy.warning("попередній запуск обірвався несподівано, надсилаю звіт сам");
+      // Знімаємо прапорець одразу: якщо надсилання не вдасться, краще втратити
+      // один звіт, ніж надсилати його щоразу при відкритті застосунку.
+      prefs.setBool(_crashFlagKey, false);
+      unawaited(_sendSilently());
+    }
 
     ref.listen(connectionNotifierProvider, (_, next) {
       final status = next.valueOrNull;
@@ -88,6 +94,20 @@ class UnexpectedExitNotifier extends _$UnexpectedExitNotifier with AppLogger {
     });
 
     return crashed;
+  }
+
+  /// Надсилає звіт без участі людини.
+  ///
+  /// Падіння в нативному коді вбиває процес мовчки: людина бачить лише, що
+  /// застосунок зник, і переказати нам нічого не може. Просити її натиснути
+  /// кнопку — означає втратити більшість випадків, а саме вони найцінніші.
+  Future<void> _sendSilently() async {
+    try {
+      final id = await ref.read(reportSenderProvider).send(note: 'Автоматический отчёт: приложение закрылось само');
+      loggy.info("звіт надіслано сам: $id");
+    } catch (error) {
+      loggy.warning("не вдалося надіслати звіт сам", error);
+    }
   }
 
   /// Людина побачила пропозицію — більше не нагадуємо.
@@ -106,7 +126,8 @@ class ErrorReportBanner extends HookConsumerWidget {
     final theme = Theme.of(context);
     final status = ref.watch(connectionNotifierProvider).valueOrNull;
     final failure = status is Disconnected ? status.connectionFailure : null;
-    final crashedBefore = ref.watch(unexpectedExitNotifierProvider);
+    // Стежимо за прапорцем: саме він запускає автоматичну відправку.
+    ref.watch(unexpectedExitNotifierProvider);
 
     // Hiddify під час звичайного від'єднання на частку секунди виставляє стан
     // помилки (у логах це «CONNECTION FAILURE: createService» рівно тоді, коли
@@ -123,10 +144,12 @@ class ErrorReportBanner extends HookConsumerWidget {
       return timer.cancel;
     }, [failurePresent]);
 
-    final showFailure = failurePresent && failureSettled.value;
-    if (!showFailure && !crashedBefore) return const SizedBox.shrink();
+    // Про падіння більше не питаємо: звіт про нього йде сам, щойно застосунок
+    // відкрився. Кнопка лишається для випадку, коли підключення не вдалося —
+    // там людина може додати, що саме робила.
+    if (!failurePresent || !failureSettled.value) return const SizedBox.shrink();
 
-    final hint = showFailure ? 'Не удалось подключиться' : 'Приложение закрылось само во время работы';
+    const hint = 'Не удалось подключиться';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -134,7 +157,7 @@ class ErrorReportBanner extends HookConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            showFailure ? 'Что-то пошло не так' : 'В прошлый раз приложение закрылось само',
+            'Что-то пошло не так',
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error),
           ),

@@ -107,6 +107,14 @@ class RevokedAccessBanner extends HookConsumerWidget with InfraLogger {
       return null;
     }, [state, connected]);
 
+    // Тунель могли вимкнути ззовні — це робить фонова служба, коли бачить, що
+    // доступ забрали. Для застосунку це просто «з'єднання зникло», тож нагода
+    // перепитати сервер і показати справжню причину.
+    useEffect(() {
+      if (!connected) ref.invalidate(accessStateProvider);
+      return null;
+    }, [connected]);
+
     if (state == AccessState.ok) return const SizedBox.shrink();
 
     final gone = state == AccessState.gone;

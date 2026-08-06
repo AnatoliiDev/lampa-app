@@ -26,6 +26,11 @@
          користувача нічого не питає. Захист у PlatformInterfaceWrapper
          лишається другим рубежем. -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- Вікно «сервер не відповідає» поверх інших застосунків. Сповіщення для
+         цього не годиться: воно за задумом системи живе у шторці, а людина в
+         цей час дивиться відео й туди не заглядає. Дозвіл видається вручну; без
+         нього лишається запасний варіант — те саме сповіщення. -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.CAMERA" />
 

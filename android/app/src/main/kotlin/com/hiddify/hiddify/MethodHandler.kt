@@ -1,6 +1,8 @@
 package com.hiddify.hiddify
 
+import android.content.Intent
 import android.util.Log
+import com.hiddify.hiddify.bg.ServerSilentOverlay
 import com.hiddify.hiddify.bg.BoxService
 //import com.hiddify.hiddify.bg.BoxService.Companion.workingDir
 import com.hiddify.hiddify.constant.Status
@@ -34,6 +36,12 @@ class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
             Restart("restart"),
             AddGrpcClientPublicKey("add_grpc_client_public_key"),
             GetGrpcServerPublicKey("get_grpc_server_public_key"),
+
+            // Дозвіл «показувати поверх інших вікон». Звичайним діалогом його не
+            // просять: це особливий дозвіл, і система дає лише відкрити свій
+            // екран налаштувань, де перемикач вмикає сама людина.
+            CanDrawOverlays("can_draw_overlays"),
+            RequestOverlayPermission("request_overlay_permission"),
 
         }
     }
@@ -71,6 +79,19 @@ class MethodHandler(private val scope: CoroutineScope) : FlutterPlugin,
                         result.success(Mobile.getServerPublicKey())
                     }
                 }
+            }
+
+            Trigger.CanDrawOverlays.method -> {
+                result.success(ServerSilentOverlay.canShow(Application.application))
+            }
+
+            Trigger.RequestOverlayPermission.method -> {
+                val intent = Intent(
+                    android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    android.net.Uri.parse("package:" + Application.application.packageName),
+                ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                runCatching { Application.application.startActivity(intent) }
+                result.success(null)
             }
 
             Trigger.Setup.method -> {

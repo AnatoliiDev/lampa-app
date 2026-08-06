@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:hiddify/core/app_info/app_info_provider.dart';
 import 'package:hiddify/core/localization/translations.dart';
 import 'package:hiddify/features/home/widget/connection_button.dart';
+import 'package:hiddify/features/home/widget/overlay_permission_card.dart';
 import 'package:hiddify/features/home/widget/revoked_access_banner.dart';
 import 'package:hiddify/features/home/widget/server_unreachable_banner.dart';
 import 'package:hiddify/features/proxy/active/active_proxy_card.dart';
@@ -124,6 +125,8 @@ class HomePage extends HookConsumerWidget {
                                     Gap(16),
                                     ServerUnreachableBanner(),
                                     RevokedAccessBanner(),
+                                    Gap(12),
+                                    OverlayPermissionCard(),
                                     // Кнопка звіту саме тут, а не в налаштуваннях:
                                     // коли щось зламалося, людина найменше
                                     // схильна шукати приховані пункти меню.

@@ -16,6 +16,7 @@ import android.os.PowerManager
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
 import com.hiddify.hiddify.Application
@@ -62,6 +63,28 @@ class BoxService(
 
         /** Як часто служба питає сервер, чи доступ ще чинний. */
         private const val ACCESS_CHECK_MS = 60_000L
+
+        /**
+         * Скільки перевірок поспіль має провалитися, перш ніж казати людині, що
+         * сервер мовчить. Одна невдача нічого не означає — телефон міг на мить
+         * втратити мережу.
+         */
+        private const val SILENCE_BEFORE_WARNING = 3
+
+        /** Окреме сповіщення: службове чіпати не можна, воно тримає передній план. */
+        private const val WARNING_NOTIFICATION_ID = 2
+
+        /**
+         * Свій канал, а не службовий. Службовий навмисно найтихіший — він має
+         * лежати внизу шторки й не заважати. Попередження ж має спливати поверх
+         * екрана, інакше його ніхто не побачить.
+         *
+         * Назва з номером не випадкова: Android не дозволяє **підвищити** вагу
+         * вже створеного каналу. Перша спроба завела канал зі звичайною вагою —
+         * воно лягало в шторку мовчки. Щоб отримати спливання, потрібен новий
+         * канал; змінювати доводиться саме назву.
+         */
+        private const val WARNING_CHANNEL = "alerts-v2"
 
         private var initializeOnce = false
         private lateinit var workingDir: File
@@ -286,14 +309,64 @@ class BoxService(
      * тунель уже нічого не пропускає.
      */
     private var accessWatch: Job? = null
+    private var silentChecks = 0
+
+    /** Сповіщення «сервер мовчить» з кнопкою виходу з тунелю. */
+    private fun showServerSilentWarning() {
+        val manager = NotificationManagerCompat.from(service)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            manager.createNotificationChannel(
+                NotificationChannel(WARNING_CHANNEL, "Предупреждения", NotificationManager.IMPORTANCE_HIGH),
+            )
+        }
+        val close = PendingIntent.getBroadcast(
+            service,
+            0,
+            Intent(Action.SERVICE_CLOSE).setPackage(service.packageName),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val notification = NotificationCompat.Builder(service, WARNING_CHANNEL)
+            .setSmallIcon(R.drawable.ic_stat_warning)
+            .setContentTitle("Сервер VPN (Лампа) не отвечает")
+            .setContentText("Интернет через него не пойдёт")
+            // Незникне: спалах угорі екрана гасне за кілька секунд, а біда
+            // лишається. Змахнути його не можна — прибереться воно саме, коли
+            // сервер озветься, або коли людина натисне «Отключить».
+            .setOngoing(true)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_ERROR)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setAutoCancel(false)
+            .addAction(0, "Отключить", close)
+            .build()
+        Log.w(TAG, "сервер мовчить, показуємо сповіщення")
+        manager.apply {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                service.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) ==
+                android.content.pm.PackageManager.PERMISSION_GRANTED
+            ) {
+                notify(WARNING_NOTIFICATION_ID, notification)
+            }
+        }
+    }
+
+    private fun hideServerSilentWarning() {
+        NotificationManagerCompat.from(service).cancel(WARNING_NOTIFICATION_ID)
+        GlobalScope.launch(Dispatchers.Main) { ServerSilentOverlay.hide(service) }
+    }
 
     private fun startAccessWatch() {
         accessWatch?.cancel()
+        silentChecks = 0
+        hideServerSilentWarning()
         accessWatch = GlobalScope.launch(Dispatchers.IO) {
             while (isActive) {
                 delay(ACCESS_CHECK_MS)
                 val url = Settings.subscriptionUrl
-                if (url.isBlank()) continue
+                if (url.isBlank()) {
+                    Log.w(TAG, "адреси підписки немає — перевіряти нема що")
+                    continue
+                }
                 val code = runCatching {
                     val connection = URL(url).openConnection() as HttpURLConnection
                     try {
@@ -304,7 +377,23 @@ class BoxService(
                     } finally {
                         connection.disconnect()
                     }
-                }.getOrNull() ?: continue
+                }.getOrNull()
+
+                Log.d(TAG, "перевірка доступу: ${code ?: "сервер мовчить"} (мовчань поспіль: $silentChecks)")
+                if (code == null) {
+                    // Сервер мовчить. Тунель не гасимо самі: це був би мовчазний
+                    // перехід на незахищене з'єднання, а людина б і не помітила.
+                    // Натомість кажемо їй прямо й лишаємо вибір за нею.
+                    if (++silentChecks == SILENCE_BEFORE_WARNING) {
+                        // Вікно поверх усього — головне; сповіщення лишається
+                        // запасним, коли дозволу на вікно немає.
+                        withContext(Dispatchers.Main) { ServerSilentOverlay.show(service) }
+                        showServerSilentWarning()
+                    }
+                    continue
+                }
+                if (silentChecks >= SILENCE_BEFORE_WARNING) hideServerSilentWarning()
+                silentChecks = 0
 
                 // 403 — доступ призупинено, 404 — підписки більше немає. І там,
                 // і там тунель уже марний: тримати його означає лишити людину
@@ -321,6 +410,7 @@ class BoxService(
     private fun stopService() {
         accessWatch?.cancel()
         accessWatch = null
+        hideServerSilentWarning()
         if (status.value == Status.Stopped) return
         status.value = Status.Stopping
         if (receiverRegistered) {
