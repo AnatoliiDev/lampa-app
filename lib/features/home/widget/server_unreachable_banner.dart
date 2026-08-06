@@ -5,6 +5,7 @@ import 'package:gap/gap.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hiddify/features/connection/model/connection_status.dart';
 import 'package:hiddify/features/connection/notifier/connection_notifier.dart';
+import 'package:hiddify/features/home/widget/revoked_access_banner.dart';
 import 'package:hiddify/features/proxy/active/active_proxy_notifier.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -26,6 +27,9 @@ class ServerUnreachableBanner extends HookConsumerWidget {
   /// затримки доходить не миттєво, і лякати людину раніше часу не варто.
   static const _gracePeriod = Duration(seconds: 8);
 
+  /// Як часто перепитувати ядро про затримку, поки людина під'єднана.
+  static const _probeEvery = Duration(seconds: 15);
+
   /// Понад це значення ядро вважає перевірку невдалою (те саме число вживається
   /// в індикаторі затримки).
   static const _timeoutDelay = 65000;
@@ -42,15 +46,41 @@ class ServerUnreachableBanner extends HookConsumerWidget {
         gracePassed.value = false;
         return null;
       }
-      final timer = Timer(_gracePeriod, () => gracePassed.value = true);
-      return timer.cancel;
+      // Показник затримки сам собою не оновлюється — він тримає останнє
+      // виміряне значення. Якщо тунель тихо перестав пропускати трафік, там так
+      // і висітиме старе «добре» число, і мовчання ми не помітимо. Тому після
+      // паузи замовляємо перевірку самі й повторюємо її, поки людина під'єднана.
+      final probe = Timer.periodic(_probeEvery, (_) {
+        ref.read(activeProxyNotifierProvider.notifier).urlTest('');
+      });
+      final grace = Timer(_gracePeriod, () {
+        gracePassed.value = true;
+        ref.read(activeProxyNotifierProvider.notifier).urlTest('');
+      });
+      return () {
+        probe.cancel();
+        grace.cancel();
+      };
     }, [connected]);
 
-    if (!connected || !gracePassed.value) return const SizedBox.shrink();
-
     final delay = ref.watch(activeProxyNotifierProvider).valueOrNull?.urlTestDelay ?? 0;
-    final unreachable = delay <= 0 || delay >= _timeoutDelay;
-    if (!unreachable) return const SizedBox.shrink();
+    final silent = connected && gracePassed.value && (delay <= 0 || delay >= _timeoutDelay);
+
+    // Гачки викликаємо до будь-якого дострокового виходу: їхній порядок має бути
+    // незмінним від побудови до побудови.
+    //
+    // Зв'язку немає — саме час перепитати сервер, чи не забрали доступ. Інакше
+    // точну причину («доступ призупинено», «потрібен новий код») людина побачила
+    // б лише після перезапуску застосунку.
+    useEffect(() {
+      if (silent) ref.invalidate(accessStateProvider);
+      return null;
+    }, [silent]);
+
+    // Коли причина відома точно, загальне «сервер не відповідає» лише заважає:
+    // про неї розповість сусідній банер.
+    final access = ref.watch(accessStateProvider).valueOrNull ?? AccessState.ok;
+    if (!silent || access != AccessState.ok) return const SizedBox.shrink();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),

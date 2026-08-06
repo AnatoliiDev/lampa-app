@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
 import 'package:hiddify/core/localization/translations.dart';
+import 'package:hiddify/features/home/widget/revoked_access_banner.dart';
 import 'package:hiddify/core/model/failures.dart';
 import 'package:hiddify/core/router/bottom_sheets/bottom_sheets_notifier.dart';
 import 'package:hiddify/core/router/dialog/dialog_notifier.dart';
@@ -29,6 +30,10 @@ class ConnectionButton extends HookConsumerWidget {
     final connectionStatus = ref.watch(connectionNotifierProvider);
     final activeProxy = ref.watch(activeProxyNotifierProvider);
     final delay = activeProxy.valueOrNull?.urlTestDelay ?? 0;
+    // Доступу немає — кнопки немає взагалі. Заблокована кнопка тут гірша за її
+    // відсутність: людина тисне, нічого не відбувається, і незрозуміло чому.
+    // Пояснення дає банер під нею.
+    final accessBlocked = (ref.watch(accessStateProvider).valueOrNull ?? AccessState.ok) != AccessState.ok;
 
     final requiresReconnect = ref.watch(configOptionNotifierProvider).valueOrNull;
     final today = DateTime.now();
@@ -116,6 +121,8 @@ class ConnectionButton extends HookConsumerWidget {
     if (delay <= 0 || delay > 65000 || connectionStatus.value != const Connected()) {
       secureLabel = "";
     }
+    if (accessBlocked) return const SizedBox.shrink();
+
     return _ConnectionButton(
       onTap: switch (connectionStatus) {
         AsyncData(value: Connected()) when requiresReconnect == true => () async {
@@ -141,6 +148,13 @@ class ConnectionButton extends HookConsumerWidget {
           return await ref.read(connectionNotifierProvider.notifier).toggleConnection();
         },
         _ => () {},
+      },
+      // Поки доступу немає, тиснути нема сенсу: сервер однаково не пустить, а
+      // тунель лише забере в телефона інтернет. Кільце очікування при цьому не
+      // крутиться — кнопка просто не відповідає.
+      busy: switch (connectionStatus) {
+        AsyncData(value: Connected()) || AsyncData(value: Disconnected()) || AsyncError() => false,
+        _ => true,
       },
       enabled: switch (connectionStatus) {
         AsyncData(value: Connected()) || AsyncData(value: Disconnected()) || AsyncError() => true,
@@ -192,6 +206,7 @@ class _ConnectionButton extends StatelessWidget {
   const _ConnectionButton({
     required this.onTap,
     required this.enabled,
+    required this.busy,
     required this.label,
     required this.buttonColor,
     required this.image,
@@ -203,6 +218,10 @@ class _ConnectionButton extends StatelessWidget {
 
   final VoidCallback onTap;
   final bool enabled;
+
+  /// Триває перемикання: показуємо кільце очікування. Це не те саме, що
+  /// «кнопка вимкнена» — вимкненою вона буває й тоді, коли доступу немає.
+  final bool busy;
   final String label;
   final Color buttonColor;
   final AssetGenImage image;
@@ -264,8 +283,8 @@ class _ConnectionButton extends StatelessWidget {
                       ),
                     ),
                   ),
-                ).animate(target: enabled ? 0 : 1).blurXY(end: 1),
-              ).animate(target: enabled ? 0 : 1).scaleXY(end: .88, curve: Curves.easeIn),
+                ).animate(target: busy ? 1 : 0).blurXY(end: 1),
+              ).animate(target: busy ? 1 : 0).scaleXY(end: .88, curve: Curves.easeIn),
             ],
           ),
         ),
