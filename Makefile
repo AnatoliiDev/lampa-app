@@ -265,10 +265,11 @@ gen_translations: #generating missing translations using google translate
 
 android-release: android-apk-release android-aab-release
 
-# Без fastforge: він кличе `flutter build apk` без --split-per-abi, а тоді
-# інструмент шукає універсальний app-release.apk, якого ми навмисно не збираємо,
-# і падає вже після успішного gradle. Прямий виклик робить рівно те саме, що й
-# локальна збірка, тож CI і машина розробника більше не розходяться.
+# Без fastforge: він кличе `flutter build apk` без --split-per-abi, і тоді
+# плагін Flutter вписує свій перелік ABI у кожен buildType, сварячись зі splits
+# (див. коментар у android/app/build.gradle). Прямий виклик робить рівно те
+# саме, що й локальна збірка, тож CI і машина розробника не розходяться.
+# Разом з universalApk gradle кладе сюди і per-abi APK, і universal.
 android-apk-release:
 	flutter build apk --release \
 	  --split-per-abi \
