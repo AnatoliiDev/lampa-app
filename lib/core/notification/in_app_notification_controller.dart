@@ -25,7 +25,11 @@ class InAppNotificationController with AppLogger {
     try {
       toastification.dismissAll();
       return toastification.show(
-        title: Text(message),
+        // toastification wraps the title in a DefaultTextStyle with
+        // maxLines: 1, so anything longer than the toast width is cut off
+        // mid-sentence. Setting maxLines here overrides that and lets the
+        // box grow instead.
+        title: Text(message, maxLines: 3, overflow: TextOverflow.ellipsis),
         type: type._toastificationType,
         alignment: AlignmentDirectional.bottomCenter,
         margin: const EdgeInsets.only(bottom: 64 + 16, right: 16, left: 16),
